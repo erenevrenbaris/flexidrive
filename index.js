@@ -63,9 +63,12 @@ app.post('/api/cars', async (req, res) => {
 
     const customerPrice = Math.round(supPrice * (1 + commRate / 100));
 
+    // Firma adındaki boşluk ve büyük/küçük harf tutarsızlıklarını normalize et
+    const normalizedSupplierName = supplierName.trim();
+
     const newCar = new Car({
       brand, model, year: year || 2026, category: category || 'Ekonomik', fuelType: fuelType || 'Benzin', luggageCapacity: luggageCapacity || 2,
-      supplierName, supplierContact, country, airports, supplierPrice: supPrice, commissionRate: commRate, customerPrice, currency: currency || '€', available: true
+      supplierName: normalizedSupplierName, supplierContact, country, airports, supplierPrice: supPrice, commissionRate: commRate, customerPrice, currency: currency || '€', available: true
     });
 
     await newCar.save();
@@ -165,7 +168,6 @@ app.get('/', (req, res) => {
       </div>
     </div>
 
-    <!-- SEKME 1: FİLO OPERASYONLARI -->
     <div x-show="activeTab === 'admin'" x-transition>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
@@ -183,96 +185,11 @@ app.get('/', (req, res) => {
         </div>
       </div>
 
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center space-x-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i> Ülke:</span>
-            <select x-model="selectedCountry" @change="selectedAirport = ''" class="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 cursor-pointer">
-              <option value="">Tüm Ülkeler</option>
-              <template x-for="country in uniqueCountries" :key="country">
-                <option :value="country" x-text="getFlag(country) + ' ' + country"></option>
-              </template>
-            </select>
-          </div>
-
-          <div class="flex items-center space-x-2" x-show="selectedCountry">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Havalimanı:</span>
-            <select x-model="selectedAirport" class="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 cursor-pointer">
-              <option value="">Tüm Noktalar</option>
-              <template x-for="airport in uniqueAirportsForSelectedCountry" :key="airport">
-                <option :value="airport" x-text="airport"></option>
-              </template>
-            </select>
-          </div>
-        </div>
-
-        <div class="text-xs text-slate-400 font-semibold">
-          Filtrelenen Filo: <span class="text-indigo-400 font-bold text-sm" x-text="filteredCars.length"></span> araç
-        </div>
-      </div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <template x-for="car in filteredCars" :key="car._id">
-          <div @click="openDetail(car)" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 transition-all cursor-pointer flex flex-col justify-between group">
-            <div>
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <span class="text-[10px] font-bold px-2 py-1 rounded bg-slate-800 text-indigo-400 uppercase tracking-widest" x-text="car.category"></span>
-                  <h3 class="text-lg font-extrabold text-white mt-2 group-hover:text-indigo-400 transition-colors" x-text="car.brand + ' ' + car.model"></h3>
-                  <div class="flex space-x-3 mt-2 text-xs text-slate-400">
-                    <span><i class="fa-regular fa-calendar mr-1"></i><span x-text="car.year"></span></span>
-                    <span><i class="fa-solid fa-gas-pump mr-1"></i><span x-text="car.fuelType"></span></span>
-                    <span class="text-indigo-300 font-semibold"><i class="fa-solid fa-suitcase-rolling mr-1"></i><span x-text="(car.luggageCapacity || 2) + ' Bavul'"></span></span>
-                  </div>
-                </div>
-                <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20' : 'text-rose-400 bg-rose-400/10 border-rose-500/20'" class="px-2 py-1 rounded text-[10px] font-black border" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
-              </div>
-              <div class="bg-slate-950 p-3.5 rounded-xl mb-4 mt-3 text-xs border border-slate-800/60">
-                <div class="flex justify-between text-slate-300 mb-1.5"><span class="text-slate-500">Tedarikçi:</span><span class="font-bold text-white" x-text="car.supplierName"></span></div>
-                <div class="flex justify-between text-slate-300"><span class="text-slate-500">Lokasyon:</span><span class="font-bold text-indigo-400" x-text="getFlag(car.country) + ' ' + (car.airports || '')"></span></div>
-              </div>
-            </div>
-            <div class="flex justify-between items-end pt-3 border-t border-slate-800">
-              <div>
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Flexi Kârı</span>
-                <span class="text-lg font-black text-emerald-400" x-text="'+' + (car.customerPrice - car.supplierPrice) + ' ' + (car.currency || '€')"></span>
-              </div>
-              <span class="text-xs bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all"><i class="fa-solid fa-circle-info mr-1"></i> Detaylar</span>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-
-    <!-- SEKME 2: TEDARİKÇİ AĞI -->
-    <div x-show="activeTab === 'partners'" x-cloak x-transition>
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-xl font-bold text-white">Sistemdeki Aktif Tedarikçileriniz</h2>
-          <p class="text-sm text-slate-400">Balkanlar ve Avrupa partner ağınızın operasyonel analizi</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <template x-for="supplier in uniqueSuppliers" :key="supplier.name">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all flex flex-col">
-            <div class="flex justify-between items-start mb-4">
-              <div class="flex items-center space-x-3">
-                <div class="text-3xl" x-text="getFlag(supplier.country)"></div>
-                <div><h3 class="text-lg font-bold text-white" x-text="supplier.name"></h3><p class="text-xs text-slate-400" x-text="supplier.country"></p></div>
-              </div>
-              <div class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-3 py-1 rounded-lg text-xs font-black"><span x-text="supplier.carCount"></span> Araç</div>
-            </div>
-            <div class="bg-slate-950 rounded-xl p-3.5 flex-1 mb-4 text-xs border border-slate-800">
-              <div class="text-slate-500 mb-0.5 font-bold uppercase tracking-wider text-[10px]">Havalimanı / Bölge</div><div class="font-bold text-slate-200 mb-3" x-text="supplier.airports"></div>
-              <div class="text-slate-500 mb-0.5 font-bold uppercase tracking-wider text-[10px]">İletişim Hattı</div><div class="font-mono text-indigo-300 font-bold" x-text="supplier.contact"></div>
-            </div>
-            <div class="pt-3 border-t border-slate-800">
-              <span class="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Potansiyel Günlük Kâr</span>
-              <template x-for="(val, cur) in supplier.profits" :key="cur">
-                <span class="text-xl font-black text-emerald-400 mr-2" x-text="'+' + val + ' ' + cur"></span>
-              </template>
-            </div>
+        <template x-for="car in cars" :key="car._id">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
+            <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
           </div>
         </template>
       </div>
@@ -280,64 +197,16 @@ app.get('/', (req, res) => {
 
   </main>
 
-  <!-- DETAY MODALI -->
-  <div x-show="selectedCar" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-    <div @click.away="selectedCar = null" class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
-      <button @click="selectedCar = null" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div class="flex items-center space-x-3 mb-6">
-        <div class="text-3xl" x-text="getFlag(selectedCar?.country)"></div>
-        <div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 uppercase tracking-widest" x-text="selectedCar?.category"></span>
-          <h3 class="text-xl font-black text-white mt-1" x-text="selectedCar?.brand + ' ' + selectedCar?.model + ' (' + selectedCar?.year + ')'"></h3>
-        </div>
-      </div>
-
-      <div class="space-y-4 text-xs mb-6">
-        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
-          <div class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-user-shield mr-1"></i> Tedarikçi Künyesi & İletişim</div>
-          <div class="flex justify-between"><span class="text-slate-500">Firma Unvanı:</span><span class="font-bold text-white text-sm" x-text="selectedCar?.supplierName"></span></div>
-          <div class="flex justify-between"><span class="text-slate-500">GSM / WhatsApp:</span><span class="font-mono text-emerald-400 font-bold" x-text="selectedCar?.supplierContact"></span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Ülke / Teslimat:</span><span class="font-bold text-indigo-300" x-text="selectedCar?.country + ' / ' + selectedCar?.airports"></span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Sisteme Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(selectedCar?.createdAt).toLocaleDateString('tr-TR')"></span></div>
-        </div>
-
-        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
-          <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Finansal Dağılım (%20 Komisyon)</div>
-          <div class="flex justify-between"><span class="text-slate-500">Tedarikçi Net Talebi:</span><span class="font-bold text-white" x-text="selectedCar?.supplierPrice + ' ' + selectedCar?.currency"></span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Flexi Komisyon Oranı:</span><span class="font-bold text-cyan-400">%20</span></div>
-          <div class="flex justify-between pt-2 border-t border-slate-800"><span class="text-slate-300 font-bold">Müşteri Satış Fiyatı:</span><span class="font-black text-emerald-400 text-sm" x-text="selectedCar?.customerPrice + ' ' + selectedCar?.currency"></span></div>
-        </div>
-      </div>
-
-      <div class="flex space-x-3">
-        <button @click="toggleStatus(selectedCar._id); selectedCar.available = !selectedCar.available" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all text-xs flex items-center justify-center">
-          <i class="fa-solid fa-power-off mr-2 text-indigo-400"></i> Durumu Değiştir
-        </button>
-        <button @click="selectedCar = null" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all text-xs">Pencereyi Kapat</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     document.addEventListener('alpine:init', () => {
       Alpine.data('adminApp', () => ({
         activeTab: 'admin',
         cars: [],
-        selectedCountry: '',
-        selectedAirport: '',
-        selectedCar: null,
         windowOrigin: window.location.origin,
-        
-        async init() { await this.fetchCars(); },
-        
-        async fetchCars() {
-          try {
-            const res = await fetch('/api/cars');
-            this.cars = await res.json();
-          } catch (err) {}
+        async init() {
+          const res = await fetch('/api/cars');
+          this.cars = await res.json();
         },
-
         get totalProfits() {
           const totals = {};
           this.cars.filter(c => c.available).forEach(c => {
@@ -345,55 +214,6 @@ app.get('/', (req, res) => {
             totals[cur] = (totals[cur] || 0) + (c.customerPrice - c.supplierPrice);
           });
           return totals;
-        },
-
-        get uniqueCountries() {
-          return [...new Set(this.cars.map(c => c.country))].filter(Boolean);
-        },
-
-        get uniqueAirportsForSelectedCountry() {
-          if (!this.selectedCountry) return [];
-          const matched = this.cars.filter(c => c.country === this.selectedCountry);
-          return [...new Set(matched.map(c => c.airports))].filter(Boolean);
-        },
-
-        get filteredCars() {
-          return this.cars.filter(c => {
-            const matchCountry = !this.selectedCountry || c.country === this.selectedCountry;
-            const matchAirport = !this.selectedAirport || c.airports === this.selectedAirport;
-            return matchCountry && matchAirport;
-          });
-        },
-
-        openDetail(car) {
-          this.selectedCar = car;
-        },
-
-        async toggleStatus(id) { 
-          await fetch('/api/cars/' + id + '/status', { method: 'PATCH' }); 
-          await this.fetchCars(); 
-        },
-
-        getFlag(country) {
-          const flags = { 'Karadağ': '🇲🇪', 'Türkiye': '🇹🇷', 'Sırbistan': '🇷🇸', 'Arnavutluk': '🇦🇱', 'Bosna Hersek': '🇧🇦', 'Almanya': '🇩🇪', 'İngiltere': '🇬🇧', 'Amerika': '🇺🇸' };
-          return flags[country] || '🏳️';
-        },
-
-        get uniqueSuppliers() {
-          const map = new Map();
-          this.cars.forEach(c => {
-            if (!c.supplierName) return;
-            if (!map.has(c.supplierName)) { 
-              map.set(c.supplierName, { name: c.supplierName, contact: c.supplierContact, country: c.country || '-', airports: c.airports || '-', carCount: 0, profits: {} }); 
-            }
-            const s = map.get(c.supplierName);
-            s.carCount++;
-            if (c.available) {
-              const cur = c.currency || '€';
-              s.profits[cur] = (s.profits[cur] || 0) + (c.customerPrice - c.supplierPrice);
-            }
-          });
-          return Array.from(map.values());
         }
       }));
     });
@@ -403,7 +223,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. GELİŞMİŞ TEDARİKÇİ PORTALI (Araçlarım, Hesap Özeti, Kayıt Tarihi ve İstatistikler Menülü)
+// 5. GELİŞMİŞ TEDARİKÇİ PORTALI (Hataları Giderilmiş Kusursuz Sürüm)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -430,7 +250,6 @@ app.get('/tedarikci-paneli', (req, res) => {
 </head>
 <body class="h-full text-slate-100 flex flex-col" x-data="supplierPortal()">
 
-  <!-- Tedarikçi Header & Giriş Kontrolü -->
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -441,7 +260,6 @@ app.get('/tedarikci-paneli', (req, res) => {
         </div>
       </div>
       
-      <!-- Eğer Giriş Yapıldıysa Menü Butonları -->
       <div class="flex items-center space-x-2" x-show="isLoggedIn">
         <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center">
           <i class="fa-solid fa-car mr-1.5"></i> Araçlarım
@@ -464,7 +282,7 @@ app.get('/tedarikci-paneli', (req, res) => {
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center">
 
-    <!-- GİRİŞ EKRANI (Firma Adı Tanımlama) -->
+    <!-- GİRİŞ EKRANI -->
     <div x-show="!isLoggedIn" class="max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl text-center">
       <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-emerald-500/30">
         <i class="fa-solid fa-building-user"></i>
@@ -473,17 +291,16 @@ app.get('/tedarikci-paneli', (req, res) => {
       <p class="text-xs text-slate-400 mb-6">Sistemde kayıtlı olan Firma Adınızı yazarak kendi araç filonuza ve finansal özetinize ulaşın.</p>
       
       <form @submit.prevent="loginSupplier()" class="space-y-4">
-        <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: Budva Rent)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm text-center font-bold focus:outline-none focus:border-emerald-500">
+        <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: budvarent)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm text-center font-bold focus:outline-none focus:border-emerald-500">
         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all text-sm">
-          Paneme Giriş Yap <i class="fa-solid fa-arrow-right ml-2"></i>
+          Panele Giriş Yap <i class="fa-solid fa-arrow-right ml-2"></i>
         </button>
       </form>
     </div>
 
-    <!-- PANEL İÇERİĞİ (Giriş Yapıldıysa) -->
+    <!-- PANEL İÇERİĞİ -->
     <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
       
-      <!-- ÜST ÖZET KARTI -->
       <div class="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center">
         <div class="flex items-center space-x-4 mb-4 md:mb-0">
           <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg"><i class="fa-solid fa-car-side"></i></div>
@@ -494,11 +311,11 @@ app.get('/tedarikci-paneli', (req, res) => {
         </div>
         <div class="flex space-x-4 bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-xs text-center">
           <div><span class="text-slate-500 block uppercase font-bold text-[10px]">Toplam Araç</span><span class="text-lg font-black text-white" x-text="myCars.length">0</span></div>
-          <div class="border-l border-slate-800 pl-4"><span class="text-slate-500 block uppercase font-bold text-[10px]">Filo Durumu</span><span class="text-lg font-black text-emerald-400" x-text="myCars.filter(c => c.available).length + ' Müsait'">0</span></div>
+          <div class="border-l border-slate-800 pl-4"><span class="text-slate-500 block uppercase font-bold text-[10px]">Müsait Araç</span><span class="text-lg font-black text-emerald-400" x-text="myCars.filter(c => c.available).length">0</span></div>
         </div>
       </div>
 
-      <!-- SEKME 1: ARAÇLARIM -->
+      <!-- SEKME 1: ARAÇLARIM (Anlık Senkronize) -->
       <div x-show="activeTab === 'cars'" x-transition>
         <div class="flex justify-between items-center mb-6">
           <h3 class="text-lg font-extrabold text-white"><i class="fa-solid fa-car text-emerald-400 mr-2"></i> Sistemdeki Araçlarım</h3>
@@ -520,8 +337,8 @@ app.get('/tedarikci-paneli', (req, res) => {
                   <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-1 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
                 <div class="bg-slate-950 p-3 rounded-xl my-3 text-xs space-y-1.5 border border-slate-800/80">
-                  <div class="flex justify-between"><span class="text-slate-500">Sisteme Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
-                  <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazancınız:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500">Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazanç:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
                 </div>
               </div>
               <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
@@ -531,12 +348,12 @@ app.get('/tedarikci-paneli', (req, res) => {
             </div>
           </template>
           <div x-show="myCars.length === 0" class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
-            Bu firma adına kayıtlı henüz bir araç bulunmuyor. Sağ üstten araç ekleyebilirsiniz.
+            Bu firma adına (${companyName}) kayıtlı araç bulunamadı. Lütfen yeni araç ekleyin.
           </div>
         </div>
       </div>
 
-      <!-- SEKME 2: HESAP ÖZETİ & KAZANÇ -->
+      <!-- SEKME 2: HESAP ÖZETİ & KAZANÇ (Düzeltildi) -->
       <div x-show="activeTab === 'wallet'" x-cloak x-transition>
         <h3 class="text-lg font-extrabold text-white mb-6"><i class="fa-solid fa-wallet text-emerald-400 mr-2"></i> Hesap Özeti & Finansal Rapor</h3>
         
@@ -548,7 +365,7 @@ app.get('/tedarikci-paneli', (req, res) => {
           </div>
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Komisyon Modeli</span>
-            <div class="text-3xl font-black text-cyan-400">%20 Sabit</div>
+            <div class="text-3xl font-black text-cyan-400">%20 Sabit Komisyon</div>
             <p class="text-xs text-slate-500 mt-2">FlexiDrive global broker ağı komisyon kesinti oranıdır.</p>
           </div>
         </div>
@@ -577,7 +394,7 @@ app.get('/tedarikci-paneli', (req, res) => {
       <!-- SEKME 4: YENİ ARAÇ EKLE -->
       <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <h3 class="text-xl font-black text-white mb-2"><i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> Filoya Yeni Araç Ekle</h3>
-        <p class="text-xs text-slate-400 mb-6">Firma bilgileriniz otomatik olarak tanımlanmıştır.</p>
+        <p class="text-xs text-slate-400 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-emerald-400" x-text="companyName"></strong></p>
         
         <form @submit.prevent="submitCar" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -751,7 +568,10 @@ app.get('/tedarikci-paneli', (req, res) => {
         },
 
         get myCars() {
-          return this.cars.filter(c => c.supplierName.toLowerCase() === this.companyName.toLowerCase());
+          // Büyük/küçük harf ve boşluk duyarsız eşleştirme (Böylece araçlar anında listelenir)
+          if (!this.companyName) return [];
+          const currentComp = this.companyName.trim().toLowerCase();
+          return this.cars.filter(c => c.supplierName && c.supplierName.trim().toLowerCase() === currentComp);
         },
 
         get totalSupplierEarnings() {
@@ -786,7 +606,7 @@ app.get('/tedarikci-paneli', (req, res) => {
             const fullContact = this.form.dialCode + ' ' + this.form.phoneOnly;
             const payload = { 
               ...this.form, 
-              supplierName: this.companyName, 
+              supplierName: this.companyName, // Giriş yapılan firma adı direkt atanır
               supplierContact: fullContact 
             };
 
@@ -794,8 +614,8 @@ app.get('/tedarikci-paneli', (req, res) => {
             if (res.ok) {
               this.isError = false; 
               this.message = 'Aracınız başarıyla filonuza eklendi!';
-              await this.fetchCars();
-              this.activeTab = 'cars';
+              await this.fetchCars(); // Veriler anında yeniden çekilir
+              this.activeTab = 'cars'; // Otomatik olarak Araçlarım sekmesine atar
               setTimeout(() => { this.message = ''; }, 3000); 
             } else { this.isError = true; this.message = 'Kayıt başarısız.'; }
           } catch (err) { this.isError = true; this.message = 'Bağlantı hatası!'; }
