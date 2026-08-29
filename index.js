@@ -27,7 +27,7 @@ const CarSchema = new mongoose.Schema({
   supplierContact: { type: String, required: true },
   country: { type: String, required: true },
   airports: { type: String, required: true },
-  supplierPrice: { type: Number, required: true },
+  supplierPrice: { type: Number, required: true, max: 400 }, // Maksimum 400 Sınırı
   commissionRate: { type: Number, default: 20 },
   customerPrice: { type: Number, required: true },
   currency: { type: String, default: "€" }, 
@@ -55,12 +55,17 @@ app.post('/api/cars', async (req, res) => {
       return res.status(400).json({ error: 'Lütfen tüm zorunlu alanları eksiksiz doldurun.' });
     }
 
-    const commRate = 20; 
     const supPrice = parseFloat(supplierPrice);
     if (isNaN(supPrice) || supPrice <= 0) {
       return res.status(400).json({ error: 'Geçersiz fiyat bilgisi.' });
     }
 
+    // Backend Güvenlik Kontrolü: 400 Sınırı
+    if (supPrice > 400) {
+      return res.status(400).json({ error: 'Günlük net kazanç 400 € üzerinde olamaz.' });
+    }
+
+    const commRate = 20; 
     const customerPrice = Math.round(supPrice * (1 + commRate / 100));
     const normalizedSupplierName = supplierName.trim();
 
@@ -195,10 +200,10 @@ app.get('/', (req, res) => {
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sabit Komisyon</p><h3 class="text-3xl font-black mt-1 text-cyan-400">%20</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-percent"></i></div></div>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hizmet Modeli</p><h3 class="text-3xl font-black mt-1 text-cyan-400">Global B2B</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-globe"></i></div></div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-sm flex justify-between items-center overflow-hidden">
           <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Kâr</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Ciro</p>
             <div class="flex flex-col space-y-1">
               <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-rose-400 leading-none" x-text="val + ' ' + cur"></span></template>
               <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-500">0</span>
@@ -232,19 +237,17 @@ app.get('/', (req, res) => {
       <div class="flex items-center justify-between mb-6">
         <div>
           <h2 class="text-xl font-extrabold text-white"><i class="fa-solid fa-earth-europe text-indigo-400 mr-2"></i> Ülke Bazlı Tedarikçi Hacim Raporu</h2>
-          <p class="text-xs text-slate-400 mt-1">Ülkelere tıklayarak o bölgedeki tedarikçi firmalarınızı ve hacimlerini detaylı inceleyin</p>
+          <p class="text-xs text-slate-400 mt-1">Ülkelere göre gruplanmış tedarikçi firmalarınız ve bölgesel araç hacimleriniz</p>
         </div>
         <div class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-4 py-2 rounded-xl text-xs font-bold">
           Aktif Ülke Sayısı: <span class="text-white font-black" x-text="groupedSuppliersByCountry.length">0</span> Bölge
         </div>
       </div>
 
-      <!-- ÜLKE KARTLARI LİSTESİ -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <template x-for="group in groupedSuppliersByCountry" :key="group.country">
           <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl hover:border-indigo-500/40 transition-all flex flex-col justify-between">
             <div>
-              <!-- Ülke Başlık / Özet Alanı -->
               <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
                 <div class="flex items-center space-x-3">
                   <div class="text-4xl" x-text="group.flag"></div>
@@ -261,7 +264,6 @@ app.get('/', (req, res) => {
                 </div>
               </div>
 
-              <!-- O Ülkedeki Firmaların Listesi -->
               <div class="space-y-3">
                 <template x-for="supplier in group.suppliers" :key="supplier.name">
                   <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex justify-between items-center">
@@ -319,43 +321,24 @@ app.get('/', (req, res) => {
           const flags = { 'Karadağ': '🇲🇪', 'Türkiye': '🇹🇷', 'Sırbistan': '🇷🇸', 'Arnavutluk': '🇦🇱', 'Bosna Hersek': '🇧🇦', 'Almanya': '🇩🇪', 'İngiltere': '🇬🇧', 'Amerika': '🇺🇸' };
           return flags[country] || '🏳️';
         },
-        // Ülkelere göre gruplandıran ve hacim hesaplayan akıllı yapı
         get groupedSuppliersByCountry() {
           const countryMap = new Map();
-
           this.cars.forEach(c => {
             if (!c.supplierName || !c.country) return;
             const countryKey = c.country.trim();
-            
             if (!countryMap.has(countryKey)) {
-              countryMap.set(countryKey, {
-                country: countryKey,
-                flag: this.getFlag(countryKey),
-                suppliersMap: new Map(),
-                totalCars: 0,
-                totalProfits: {}
-              });
+              countryMap.set(countryKey, { country: countryKey, flag: this.getFlag(countryKey), suppliersMap: new Map(), totalCars: 0, totalProfits: {} });
             }
-
             const countryGroup = countryMap.get(countryKey);
             countryGroup.totalCars++;
-
             if (c.available) {
               const cur = c.currency || '€';
               countryGroup.totalProfits[cur] = (countryGroup.totalProfits[cur] || 0) + (c.customerPrice - c.supplierPrice);
             }
-
             const supKey = c.supplierName.trim().toLowerCase();
             if (!countryGroup.suppliersMap.has(supKey)) {
-              countryGroup.suppliersMap.set(supKey, {
-                name: c.supplierName.trim(),
-                contact: c.supplierContact,
-                airports: c.airports || '-',
-                carCount: 0,
-                profits: {}
-              });
+              countryGroup.suppliersMap.set(supKey, { name: c.supplierName.trim(), contact: c.supplierContact, airports: c.airports || '-', carCount: 0, profits: {} });
             }
-
             const supObj = countryGroup.suppliersMap.get(supKey);
             supObj.carCount++;
             if (c.available) {
@@ -363,19 +346,10 @@ app.get('/', (req, res) => {
               supObj.profits[cur] = (supObj.profits[cur] || 0) + (c.customerPrice - c.supplierPrice);
             }
           });
-
-          // Map yapılarını Array e dönüştür
           const result = [];
           countryMap.forEach((group) => {
-            result.push({
-              country: group.country,
-              flag: group.flag,
-              totalCars: group.totalCars,
-              totalProfits: group.totalProfits,
-              suppliers: Array.from(group.suppliersMap.values())
-            });
+            result.push({ country: group.country, flag: group.flag, totalCars: group.totalCars, totalProfits: group.totalProfits, suppliers: Array.from(group.suppliersMap.values()) });
           });
-
           return result;
         }
       }));
@@ -386,7 +360,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI
+// 5. TEDARİKÇİ PORTALI (400 Sınırı Korumalı ve Komisyonsuz)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -526,9 +500,9 @@ app.get('/tedarikci-paneli', (req, res) => {
             <p class="text-xs text-slate-500 mt-2">Müsait durumdaki tüm araçlarınızın günlük net toplam kazancıdır.</p>
           </div>
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Komisyon Modeli</span>
-            <div class="text-3xl font-black text-cyan-400">%20 Sabit Komisyon</div>
-            <p class="text-xs text-slate-500 mt-2">FlexiDrive global broker ağı komisyon kesinti oranıdır.</p>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Dağıtım Ağı Modeli</span>
+            <div class="text-2xl font-black text-cyan-400">Global B2B Sözleşmesi</div>
+            <p class="text-xs text-slate-500 mt-2">FlexiDrive uluslararası havalimanı ve broker dağıtım anlaşması kapsamındadır.</p>
           </div>
         </div>
       </div>
@@ -554,7 +528,7 @@ app.get('/tedarikci-paneli', (req, res) => {
 
       <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <h3 class="text-xl font-black text-white mb-2"><i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> Filoya Yeni Araç Ekle</h3>
-        <p class="text-xs text-slate-400 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-emerald-400" x-text="companyName"></strong></p>
+        <p class="text-xs text-slate-400 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-emerald-400" x-text="companyName"></strong> (Günlük kazanç sınırı maksimum 400 €'dur).</p>
         
         <form @submit.prevent="submitCar" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -633,10 +607,10 @@ app.get('/tedarikci-paneli', (req, res) => {
                   <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Adet" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
                 </div>
                 <div class="w-2/3">
-                  <label class="block text-[10px] font-black text-emerald-400 uppercase tracking-wider mb-1">Günlük Net Kazanç</label>
+                  <label class="block text-[10px] font-black text-emerald-400 uppercase tracking-wider mb-1">Günlük Net Kazanç (Maks. 400 €)</label>
                   <div class="relative">
                     <span class="absolute left-3 top-3 text-emerald-400 font-black text-base" x-text="form.currency"></span>
-                    <input type="number" x-model="form.supplierPrice" required min="1" placeholder="Tutar" class="w-full bg-slate-950 border-2 border-emerald-500/40 rounded-xl pl-8 pr-3 py-3 text-white text-sm font-black">
+                    <input type="number" x-model="form.supplierPrice" required min="1" max="400" placeholder="Max 400" class="w-full bg-slate-950 border-2 border-emerald-500/40 rounded-xl pl-8 pr-3 py-3 text-white text-sm font-black">
                   </div>
                 </div>
               </div>
@@ -737,17 +711,6 @@ app.get('/tedarikci-paneli', (req, res) => {
           return this.myCars.filter(c => c.available).reduce((acc, c) => acc + (c.supplierPrice || 0), 0);
         },
 
-        get averageDaysInSystem() {
-          if (this.myCars.length === 0) return 0;
-          const now = new Date();
-          const totalDays = this.myCars.reduce((acc, c) => {
-            const created = new Date(c.createdAt);
-            const diffTime = Math.abs(now - created);
-            return acc + Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          }, 0);
-          return Math.round(totalDays / this.myCars.length);
-        },
-
         updateCountryData(val) {
           this.form.airports = ''; 
           const c = this.countries.find(x => x.name === val);
@@ -762,6 +725,14 @@ app.get('/tedarikci-paneli', (req, res) => {
 
         async submitCar() {
           try {
+            // Frontend Güvenlik Kontrolü
+            const priceVal = parseFloat(this.form.supplierPrice);
+            if (priceVal > 400) {
+              this.isError = true;
+              this.message = 'Günlük net kazanç 400 € üzerinde olamaz!';
+              return;
+            }
+
             const fullContact = this.form.dialCode + ' ' + this.form.phoneOnly;
             const payload = { 
               ...this.form, 
@@ -776,7 +747,11 @@ app.get('/tedarikci-paneli', (req, res) => {
               await this.fetchCars();
               this.activeTab = 'cars';
               setTimeout(() => { this.message = ''; }, 3000); 
-            } else { this.isError = true; this.message = 'Kayıt başarısız.'; }
+            } else { 
+              const errData = await res.json();
+              this.isError = true; 
+              this.message = errData.error || 'Kayıt başarısız.'; 
+            }
           } catch (err) { this.isError = true; this.message = 'Bağlantı hatası!'; }
         },
 
