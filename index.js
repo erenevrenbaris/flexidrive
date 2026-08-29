@@ -47,12 +47,10 @@ app.get('/api/cars', async (req, res) => {
   }
 });
 
-// KÜRESEL META-SEARCH (SKYSCANNER / TRIVAGO / PARTNERLER) İÇİN OPEN API FEED UÇ NOKTASI
+// KÜRESEL META-SEARCH OPEN API FEED
 app.get('/api/feed/global-inventory', async (req, res) => {
   try {
-    // Sadece müsait (kirada olmayan) araçlar global arama motorlarına beslenir
     const activeCars = await Car.find({ available: true }).sort({ createdAt: -1 });
-    
     const feedData = activeCars.map(car => ({
       vehicle_id: car._id,
       brand: car.brand,
@@ -61,27 +59,15 @@ app.get('/api/feed/global-inventory', async (req, res) => {
       category: car.category,
       fuel_type: car.fuelType,
       luggage: car.luggageCapacity,
-      location: {
-        country: car.country,
-        airport_code: car.airports
-      },
-      pricing: {
-        daily_rate: car.customerPrice,
-        currency: car.currency,
-        net_supplier_rate: car.supplierPrice
-      },
-      booking_deeplink: \`https://\${req.get('host')}/rezervasyon?car_id=\${car._id}&pickup=\${encodeURIComponent(car.airports)}\`,
+      location: { country: car.country, airport_code: car.airports },
+      pricing: { daily_rate: car.customerPrice, currency: car.currency, net_supplier_rate: car.supplierPrice },
+      booking_deeplink: `https://${req.get('host')}/rezervasyon?car_id=${car._id}&pickup=${encodeURIComponent(car.airports)}`,
       provider: car.supplierName,
       status: "AVAILABLE",
       last_updated: car.createdAt
     }));
 
-    res.json({
-      broker: "FlexiDrive Global OS",
-      total_items: feedData.length,
-      generated_at: new Date(),
-      inventory: feedData
-    });
+    res.json({ broker: "FlexiDrive Global OS", total_items: feedData.length, generated_at: new Date(), inventory: feedData });
   } catch (err) {
     res.status(500).json({ error: 'Global feed verisi oluşturulamadı' });
   }
@@ -128,6 +114,17 @@ app.patch('/api/cars/:id/status', async (req, res) => {
   }
 });
 
+// YENİ: ADMIN İÇİN ARAÇ SİSTEMDEN TAMAMEN SİLME ENDPOINT'İ
+app.delete('/api/cars/:id', async (req, res) => {
+  try {
+    const deletedCar = await Car.findByIdAndDelete(req.params.id);
+    if (!deletedCar) return res.status(404).json({ error: 'Araç bulunamadı' });
+    res.json({ success: true, message: 'Araç sistemden kalıcı olarak silindi.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Araç silinemedi' });
+  }
+});
+
 app.patch('/api/cars/:id/rent', async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
@@ -152,7 +149,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Entegrasyon & Feed Sekmeli)
+// 4. KURUMSAL ADMIN PANELİ (SİLME BUTONLU)
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -198,7 +195,7 @@ app.get('/', (req, res) => {
         <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center">
           <i class="fa-solid fa-network-wired mr-1.5"></i> Meta-Search Entegrasyonları
         </button>
-        <a href="/tedarikci-paneli" target="_blank" class="text-emerald-400 hover:bg-emerald-500/10 px-4 py-2 rounded-xl font-semibold text-xs transition-all border border-emerald-500/30 flex items-center">
+        <a href="/tedarikci-paneli" target="_blank" class="text-emerald-400 hover:bg-emerald-500/10 px-4 py-2 rounded-xl font-semibold text-sm transition-all border border-emerald-500/30 flex items-center">
           <i class="fa-solid fa-external-link-alt mr-1.5"></i> Tedarikçi Portalı
         </a>
       </div>
@@ -207,7 +204,7 @@ app.get('/', (req, res) => {
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- SEKME 1: FİLO OPERASYONLARI -->
+    <!-- SEKME 1: FİLO OPERASYONLARI (ANLIK KONTROL & SİLME) -->
     <div x-show="activeTab === 'admin'" x-transition>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
@@ -230,21 +227,29 @@ app.get('/', (req, res) => {
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
-                <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
+                <div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 uppercase" x-text="car.category"></span>
+                  <h4 class="text-base font-bold text-white mt-1" x-text="car.brand + ' ' + car.model"></h4>
+                </div>
                 <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
               </div>
-              <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
+              <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-building text-indigo-400 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
+              <div class="bg-slate-950 p-2.5 rounded-xl my-3 text-xs flex justify-between items-center border border-slate-800">
+                <span class="text-slate-500">Net / Satış:</span>
+                <span class="font-bold text-emerald-400" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span>
+              </div>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-              <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
-              <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
+            
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+              <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-all">Durum Değiştir</button>
+              <button @click="deleteCar(car._id)" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-1.5 rounded-lg font-bold transition-all"><i class="fa-solid fa-trash-can mr-1"></i> Sistemi Kaldır</button>
             </div>
           </div>
         </template>
       </div>
     </div>
 
-    <!-- SEKME 2: TEDARİKÇİ AĞI (ÜLKE BAZLI) -->
+    <!-- SEKME 2: TEDARİKÇİ AĞI -->
     <div x-show="activeTab === 'partners'" x-cloak x-transition>
       <div class="flex items-center justify-between mb-6">
         <div>
@@ -286,7 +291,7 @@ app.get('/', (req, res) => {
       </div>
     </div>
 
-    <!-- SEKME 3: META-SEARCH ENTEGRASYONLARI (SKYSCANNER / TRIVAGO / KAYAK) -->
+    <!-- SEKME 3: META-SEARCH ENTEGRASYONLARI -->
     <div x-show="activeTab === 'integrations'" x-cloak x-transition>
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl"></div>
@@ -307,25 +312,6 @@ app.get('/', (req, res) => {
               <button @click="navigator.clipboard.writeText(windowOrigin + '/api/feed/global-inventory'); alert('Feed URL kopyalandı!')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs whitespace-nowrap shadow-lg">
                 <i class="fa-regular fa-copy mr-1.5"></i> URL'yi Kopyala
               </button>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-2">Bu uç noktayı Skyscanner ortaklık başvurunuzda "Supplier API Feed" olarak sunabilirsiniz. Sadece müsait araçlarınız anlık olarak listelenir.</p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
-              <h4 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-plane text-cyan-400 mr-2"></i> Skyscanner API</h4>
-              <p class="text-xs text-slate-400 mb-3">Envanter senkronizasyonu aktif ve uçuş arama motorlarına hazır.</p>
-              <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/20">Durum: Bağlanmaya Hazır</span>
-            </div>
-            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
-              <h4 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-hotel text-indigo-400 mr-2"></i> Kayak & Rentalcars</h4>
-              <p class="text-xs text-slate-400 mb-3">Deeplink yönlendirmeleri ve otomatik fiyatlandırma devrede.</p>
-              <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/20">Durum: Destekleniyor</span>
-            </div>
-            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
-              <h4 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-rose-400 mr-2"></i> Otomatik Webhook</h4>
-              <p class="text-xs text-slate-400 mb-3">Dış sistemlerden gelen rezervasyonlar anında aracı kilitler.</p>
-              <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/20">Durum: Aktif (Dinleniyor)</span>
             </div>
           </div>
         </div>
@@ -348,6 +334,16 @@ app.get('/', (req, res) => {
         async toggleStatus(id) {
           await fetch('/api/cars/' + id + '/status', { method: 'PATCH' });
           await this.fetchCars();
+        },
+        async deleteCar(id) {
+          if (confirm('Bu aracı sistemden kalıcı olarak silmek istediğinize emin misiniz?')) {
+            const res = await fetch('/api/cars/' + id, { method: 'DELETE' });
+            if (res.ok) {
+              await this.fetchCars();
+            } else {
+              alert('Araç silinemedi.');
+            }
+          }
         },
         get totalProfits() {
           const totals = {};
