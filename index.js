@@ -25,7 +25,7 @@ const CarSchema = new mongoose.Schema({
   luggageCapacity: { type: Number, default: 2 },
   supplierName: { type: String, required: true },
   supplierContact: { type: String, required: true },
-  country: { type: String, required: "Karadağ" },
+  country: { type: String, required: true },
   airports: { type: String, required: true },
   supplierPrice: { type: Number, required: true },
   commissionRate: { type: Number, default: 20 },
@@ -37,7 +37,7 @@ const CarSchema = new mongoose.Schema({
 
 const Car = mongoose.model('Car', CarSchema);
 
-// 3. API Rotaları (Güvenlik Korumalı)
+// 3. API Rotaları
 app.get('/api/cars', async (req, res) => {
   try {
     const cars = await Car.find().sort({ createdAt: -1 });
@@ -114,7 +114,6 @@ app.get('/', (req, res) => {
 </head>
 <body class="h-full text-slate-100 flex flex-col" x-data="adminApp()">
 
-  <!-- Kurumsal Header -->
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md bg-opacity-90">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -140,7 +139,6 @@ app.get('/', (req, res) => {
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- PROFİL & KURUMSAL LİNK YÖNETİMİ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 shadow-xl flex items-center space-x-4">
         <div class="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30 flex-shrink-0">EE</div>
@@ -169,8 +167,6 @@ app.get('/', (req, res) => {
 
     <!-- SEKME 1: FİLO OPERASYONLARI -->
     <div x-show="activeTab === 'admin'" x-transition>
-      
-      <!-- ÖZET KARTLARI -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
@@ -187,7 +183,6 @@ app.get('/', (req, res) => {
         </div>
       </div>
 
-      <!-- GELİŞMİŞ FİLTRELEME ÇUBUĞU (Ülke & Lokasyon) -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center space-x-2">
@@ -216,7 +211,6 @@ app.get('/', (req, res) => {
         </div>
       </div>
 
-      <!-- ARAÇ GRID LİSTESİ -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <template x-for="car in filteredCars" :key="car._id">
           <div @click="openDetail(car)" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 transition-all cursor-pointer flex flex-col justify-between group">
@@ -250,7 +244,7 @@ app.get('/', (req, res) => {
       </div>
     </div>
 
-    <!-- SEKME 2: TEDARİKÇİ AĞI (PARTNERLER) -->
+    <!-- SEKME 2: TEDARİKÇİ AĞI -->
     <div x-show="activeTab === 'partners'" x-cloak x-transition>
       <div class="flex items-center justify-between mb-6">
         <div>
@@ -286,7 +280,7 @@ app.get('/', (req, res) => {
 
   </main>
 
-  <!-- KİMDE NE VAR DETAY MODALI (ENTERPRISE DRILL-DOWN) -->
+  <!-- DETAY MODALI -->
   <div x-show="selectedCar" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
     <div @click.away="selectedCar = null" class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
       <button @click="selectedCar = null" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
@@ -305,12 +299,13 @@ app.get('/', (req, res) => {
           <div class="flex justify-between"><span class="text-slate-500">Firma Unvanı:</span><span class="font-bold text-white text-sm" x-text="selectedCar?.supplierName"></span></div>
           <div class="flex justify-between"><span class="text-slate-500">GSM / WhatsApp:</span><span class="font-mono text-emerald-400 font-bold" x-text="selectedCar?.supplierContact"></span></div>
           <div class="flex justify-between"><span class="text-slate-500">Ülke / Teslimat:</span><span class="font-bold text-indigo-300" x-text="selectedCar?.country + ' / ' + selectedCar?.airports"></span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Sisteme Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(selectedCar?.createdAt).toLocaleDateString('tr-TR')"></span></div>
         </div>
 
         <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
           <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Finansal Dağılım (%20 Komisyon)</div>
           <div class="flex justify-between"><span class="text-slate-500">Tedarikçi Net Talebi:</span><span class="font-bold text-white" x-text="selectedCar?.supplierPrice + ' ' + selectedCar?.currency"></span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Flexi Komisyon Oranı:</span><span class="font-bold text-cyan-400">%" + (selectedCar?.commissionRate || 20) + "</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Flexi Komisyon Oranı:</span><span class="font-bold text-cyan-400">%20</span></div>
           <div class="flex justify-between pt-2 border-t border-slate-800"><span class="text-slate-300 font-bold">Müşteri Satış Fiyatı:</span><span class="font-black text-emerald-400 text-sm" x-text="selectedCar?.customerPrice + ' ' + selectedCar?.currency"></span></div>
         </div>
       </div>
@@ -408,20 +403,21 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. AYRI TEDARİKÇİ KAYIT PORTALI (/tedarikci-paneli)
+// 5. GELİŞMİŞ TEDARİKÇİ PORTALI (Araçlarım, Hesap Özeti, Kayıt Tarihi ve İstatistikler Menülü)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlexiDrive Tedarikçi Portal</title>
+  <title>FlexiDrive Tedarikçi Operasyon Merkezi</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    [x-cloak] { display: none !important; }
     select {
       appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23818cf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -432,130 +428,255 @@ app.get('/tedarikci-paneli', (req, res) => {
     select::-ms-expand { display: none; }
   </style>
 </head>
-<body class="h-full text-slate-100 flex items-center justify-center p-4" x-data="supplierApp()">
+<body class="h-full text-slate-100 flex flex-col" x-data="supplierPortal()">
 
-  <div class="max-w-3xl w-full bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
-    
-    <div class="flex items-center space-x-3 mb-6 border-b border-slate-800 pb-4 relative z-10">
-      <div class="bg-emerald-600 text-white p-3 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-emerald-600/30"><i class="fa-solid fa-handshake"></i></div>
-      <div>
-        <h3 class="text-2xl font-black text-white">FlexiDrive Tedarikçi Portalı</h3>
-        <p class="text-xs text-slate-400 font-medium">Filo aracınızı kaydedin, uluslararası broker ağımızla hemen rezervasyon almaya başlayın.</p>
+  <!-- Tedarikçi Header & Giriş Kontrolü -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-emerald-600 text-white p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/30"><i class="fa-solid fa-handshake"></i></div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight text-white">FlexiDrive</span> 
+          <span class="text-[10px] text-emerald-400 ml-1 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest">Tedarikçi Portalı</span>
+        </div>
+      </div>
+      
+      <!-- Eğer Giriş Yapıldıysa Menü Butonları -->
+      <div class="flex items-center space-x-2" x-show="isLoggedIn">
+        <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center">
+          <i class="fa-solid fa-car mr-1.5"></i> Araçlarım
+        </button>
+        <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center">
+          <i class="fa-solid fa-wallet mr-1.5"></i> Hesap Özeti & Kazanç
+        </button>
+        <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center">
+          <i class="fa-solid fa-chart-line mr-1.5"></i> Kiralama İstatistikleri
+        </button>
+        <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center border border-emerald-500/30">
+          <i class="fa-solid fa-plus-circle mr-1.5"></i> Yeni Araç Ekle
+        </button>
+        <button @click="logout()" class="text-rose-400 hover:bg-rose-500/10 p-2 rounded-xl text-xs transition-all ml-2" title="Çıkış Yap">
+          <i class="fa-solid fa-right-from-bracket text-base"></i>
+        </button>
       </div>
     </div>
-    
-    <form @submit.prevent="submitCar" class="space-y-6 relative z-10">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <div class="space-y-4">
-          <h4 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-building mr-1"></i> Firma & Bölge</h4>
-          
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Ülke Seçimi</label>
-            <select x-model="form.country" @change="updateCountryData(form.country)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-bold">
-              <option value="" disabled selected>Ülke Seçin</option>
-              <template x-for="c in countries" :key="c.name">
-                <option :value="c.name" x-text="c.flag + ' ' + c.name"></option>
-              </template>
-            </select>
-          </div>
+  </header>
 
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Firma Adı</label>
-            <input type="text" x-model="form.supplierName" required placeholder="Firma Adı (Örn: Budva Rent a Car)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm">
-          </div>
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center">
 
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Telefon Numarası (Sadece Rakam)</label>
-            <div class="flex space-x-2">
-              <select x-model="form.dialCode" required class="w-1/3 bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-white text-sm font-mono font-bold">
-                <template x-for="c in countries" :key="c.name">
-                  <option :value="c.dial" x-text="c.flag + ' ' + c.dial"></option>
-                </template>
-              </select>
-              <input type="tel" x-model="form.phoneOnly" required pattern="[0-9]*" minlength="7" maxlength="12" placeholder="5XX XXX XX XX" class="w-2/3 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-mono">
-            </div>
-          </div>
+    <!-- GİRİŞ EKRANI (Firma Adı Tanımlama) -->
+    <div x-show="!isLoggedIn" class="max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl text-center">
+      <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-emerald-500/30">
+        <i class="fa-solid fa-building-user"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white mb-2">Tedarikçi Girişi</h2>
+      <p class="text-xs text-slate-400 mb-6">Sistemde kayıtlı olan Firma Adınızı yazarak kendi araç filonuza ve finansal özetinize ulaşın.</p>
+      
+      <form @submit.prevent="loginSupplier()" class="space-y-4">
+        <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: Budva Rent)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm text-center font-bold focus:outline-none focus:border-emerald-500">
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all text-sm">
+          Paneme Giriş Yap <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </form>
+    </div>
 
+    <!-- PANEL İÇERİĞİ (Giriş Yapıldıysa) -->
+    <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
+      
+      <!-- ÜST ÖZET KARTI -->
+      <div class="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg"><i class="fa-solid fa-car-side"></i></div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Havalimanı / Teslim Noktası</label>
-            <select x-model="form.airports" required :disabled="!form.country" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-bold disabled:opacity-40">
-              <option value="" disabled selected>Önce Ülke Seçin</option>
-              <template x-for="airport in availableAirports" :key="airport">
-                <option :value="airport" x-text="airport"></option>
-              </template>
-            </select>
+            <h2 class="text-xl font-extrabold text-white" x-text="companyName"></h2>
+            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Aktif Tedarikçi Operasyon Paneli</p>
           </div>
         </div>
+        <div class="flex space-x-4 bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-xs text-center">
+          <div><span class="text-slate-500 block uppercase font-bold text-[10px]">Toplam Araç</span><span class="text-lg font-black text-white" x-text="myCars.length">0</span></div>
+          <div class="border-l border-slate-800 pl-4"><span class="text-slate-500 block uppercase font-bold text-[10px]">Filo Durumu</span><span class="text-lg font-black text-emerald-400" x-text="myCars.filter(c => c.available).length + ' Müsait'">0</span></div>
+        </div>
+      </div>
 
-        <div class="space-y-4">
-          <h4 class="text-xs font-black text-indigo-400 uppercase tracking-widest"><i class="fa-solid fa-car mr-1"></i> Araç Teknik Detayları</h4>
-          
-          <div class="flex space-x-3">
-            <div class="w-1/2">
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Marka</label>
-              <select x-model="form.brand" @change="form.model = ''; availableModels = carData[form.brand] || []" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
-                <option value="" disabled selected>Marka Seçin</option>
-                <template x-for="(models, brandName) in carData" :key="brandName">
-                  <option :value="brandName" x-text="brandName"></option>
-                </template>
-              </select>
+      <!-- SEKME 1: ARAÇLARIM -->
+      <div x-show="activeTab === 'cars'" x-transition>
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-extrabold text-white"><i class="fa-solid fa-car text-emerald-400 mr-2"></i> Sistemdeki Araçlarım</h3>
+          <button @click="activeTab = 'add'" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all shadow">
+            <i class="fa-solid fa-plus mr-1"></i> Yeni Araç Ekle
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <template x-for="car in myCars" :key="car._id">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-emerald-500/40 transition-all flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-emerald-400 uppercase" x-text="car.category"></span>
+                    <h4 class="text-base font-extrabold text-white mt-2" x-text="car.brand + ' ' + car.model"></h4>
+                    <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-location-dot text-emerald-400 mr-1"></i> <span x-text="car.country + ' / ' + car.airports"></span></p>
+                  </div>
+                  <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-1 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl my-3 text-xs space-y-1.5 border border-slate-800/80">
+                  <div class="flex justify-between"><span class="text-slate-500">Sisteme Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazancınız:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                <span class="text-slate-500">Yıl: <strong class="text-white" x-text="car.year"></strong></span>
+                <button @click="toggleMyCarStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-all">Durum Değiştir</button>
+              </div>
             </div>
-            
-            <div class="w-1/2">
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Model</label>
-              <select x-model="form.model" required :disabled="!form.brand" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold disabled:opacity-40">
-                <option value="" disabled selected>Önce Marka Seçin</option>
-                <template x-for="modelName in availableModels" :key="modelName">
-                  <option :value="modelName" x-text="modelName"></option>
-                </template>
-              </select>
-            </div>
+          </template>
+          <div x-show="myCars.length === 0" class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
+            Bu firma adına kayıtlı henüz bir araç bulunmuyor. Sağ üstten araç ekleyebilirsiniz.
           </div>
+        </div>
+      </div>
 
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Yıl</label>
-              <input type="number" x-model="form.year" required min="2000" max="2027" placeholder="Yıl" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sınıf</label>
-              <select x-model="form.category" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-white text-sm font-bold">
-                <option value="Ekonomik">Ekonomik</option><option value="SUV">SUV</option><option value="Sedan">Sedan</option><option value="Lüks">Lüks</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Yakıt</label>
-              <select x-model="form.fuelType" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-white text-sm font-bold">
-                <option value="Benzin">Benzin</option><option value="Dizel">Dizel</option><option value="Hibrit">Hibrit</option><option value="Elektrik">Elektrik</option>
-              </select>
-            </div>
+      <!-- SEKME 2: HESAP ÖZETİ & KAZANÇ -->
+      <div x-show="activeTab === 'wallet'" x-cloak x-transition>
+        <h3 class="text-lg font-extrabold text-white mb-6"><i class="fa-solid fa-wallet text-emerald-400 mr-2"></i> Hesap Özeti & Finansal Rapor</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Toplam Aktif Araç Kazanç Potansiyeli</span>
+            <div class="text-3xl font-black text-emerald-400" x-text="totalSupplierEarnings + ' €'"></div>
+            <p class="text-xs text-slate-500 mt-2">Müsait durumdaki tüm araçlarınızın günlük net toplam kazancıdır.</p>
           </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Komisyon Modeli</span>
+            <div class="text-3xl font-black text-cyan-400">%20 Sabit</div>
+            <p class="text-xs text-slate-500 mt-2">FlexiDrive global broker ağı komisyon kesinti oranıdır.</p>
+          </div>
+        </div>
+      </div>
 
-          <div class="flex space-x-3">
-            <div class="w-1/3">
-              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bavul</label>
-              <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Kapasite" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
+      <!-- SEKME 3: KİRALAMA İSTATİSTİKLERİ -->
+      <div x-show="activeTab === 'stats'" x-cloak x-transition>
+        <h3 class="text-lg font-extrabold text-white mb-6"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Kiralama Performans İstatistikleri</h3>
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="flex justify-between items-center pb-4 border-b border-slate-800 text-xs">
+            <span class="text-slate-400 font-bold">Toplam Filo Havuzundaki Payınız</span>
+            <span class="text-white font-black text-sm" x-text="myCars.length + ' Araç'"></span>
+          </div>
+          <div class="flex justify-between items-center pb-4 border-b border-slate-800 text-xs">
+            <span class="text-slate-400 font-bold">Ortalama Araç Kalış Süresi (Sistemde)</span>
+            <span class="text-emerald-400 font-black text-sm" x-text="averageDaysInSystem + ' Gün'"></span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-400 font-bold">Operasyonel Durum</span>
+            <span class="text-emerald-400 font-black bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sorunsuz & Aktif</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEKME 4: YENİ ARAÇ EKLE -->
+      <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <h3 class="text-xl font-black text-white mb-2"><i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> Filoya Yeni Araç Ekle</h3>
+        <p class="text-xs text-slate-400 mb-6">Firma bilgileriniz otomatik olarak tanımlanmıştır.</p>
+        
+        <form @submit.prevent="submitCar" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Ülke Seçimi</label>
+                <select x-model="form.country" @change="updateCountryData(form.country)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-bold">
+                  <option value="" disabled selected>Ülke Seçin</option>
+                  <template x-for="c in countries" :key="c.name">
+                    <option :value="c.name" x-text="c.flag + ' ' + c.name"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Havalimanı / Teslim Noktası</label>
+                <select x-model="form.airports" required :disabled="!form.country" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-bold disabled:opacity-40">
+                  <option value="" disabled selected>Önce Ülke Seçin</option>
+                  <template x-for="airport in availableAirports" :key="airport">
+                    <option :value="airport" x-text="airport"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">İletişim Numarası (Telefon)</label>
+                <input type="tel" x-model="form.phoneOnly" required placeholder="5XX XXX XX XX" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm font-mono">
+              </div>
             </div>
-            <div class="w-2/3">
-              <label class="block text-[10px] font-black text-emerald-400 uppercase tracking-wider mb-1">Günlük Net Kazanç</label>
-              <div class="relative">
-                <span class="absolute left-3 top-3 text-emerald-400 font-black text-base" x-text="form.currency"></span>
-                <input type="number" x-model="form.supplierPrice" required min="1" placeholder="Tutar" class="w-full bg-slate-950 border-2 border-emerald-500/40 rounded-xl pl-8 pr-3 py-3 text-white text-sm font-black">
+
+            <div class="space-y-4">
+              <div class="flex space-x-3">
+                <div class="w-1/2">
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Marka</label>
+                  <select x-model="form.brand" @change="form.model = ''; availableModels = carData[form.brand] || []" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
+                    <option value="" disabled selected>Marka Seçin</option>
+                    <template x-for="(models, brandName) in carData" :key="brandName">
+                      <option :value="brandName" x-text="brandName"></option>
+                    </template>
+                  </select>
+                </div>
+                
+                <div class="w-1/2">
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Model</label>
+                  <select x-model="form.model" required :disabled="!form.brand" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold disabled:opacity-40">
+                    <option value="" disabled selected>Önce Marka Seçin</option>
+                    <template x-for="modelName in availableModels" :key="modelName">
+                      <option :value="modelName" x-text="modelName"></option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Yıl</label>
+                  <input type="number" x-model="form.year" required min="2000" max="2027" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Sınıf</label>
+                  <select x-model="form.category" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-white text-sm font-bold">
+                    <option value="Ekonomik">Ekonomik</option><option value="SUV">SUV</option><option value="Sedan">Sedan</option><option value="Lüks">Lüks</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Yakıt</label>
+                  <select x-model="form.fuelType" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-white text-sm font-bold">
+                    <option value="Benzin">Benzin</option><option value="Dizel">Dizel</option><option value="Hibrit">Hibrit</option><option value="Elektrik">Elektrik</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex space-x-3">
+                <div class="w-1/3">
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bavul</label>
+                  <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Adet" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-white text-sm font-bold">
+                </div>
+                <div class="w-2/3">
+                  <label class="block text-[10px] font-black text-emerald-400 uppercase tracking-wider mb-1">Günlük Net Kazanç</label>
+                  <div class="relative">
+                    <span class="absolute left-3 top-3 text-emerald-400 font-black text-base" x-text="form.currency"></span>
+                    <input type="number" x-model="form.supplierPrice" required min="1" placeholder="Tutar" class="w-full bg-slate-950 border-2 border-emerald-500/40 rounded-xl pl-8 pr-3 py-3 text-white text-sm font-black">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+          
+          <div x-show="message" x-text="message" :class="isError ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'" class="p-3 rounded-xl border text-sm font-bold text-center"></div>
+          
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all">
+            <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Aracı Sisteme Kaydet ve Listeme Ekle
+          </button>
+        </form>
       </div>
-      
-      <div x-show="message" x-text="message" :class="isError ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'" class="p-3 rounded-xl border text-sm font-bold text-center"></div>
-      
-      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
-        <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Aracı Sisteme Kaydet
-      </button>
-    </form>
-  </div>
+
+    </div>
+
+  </main>
 
   <script>
     const GLOBAL_COUNTRIES = [
@@ -563,61 +684,91 @@ app.get('/tedarikci-paneli', (req, res) => {
       { name: 'Türkiye', flag: '🇹🇷', dial: '+90', currency: '₺' },
       { name: 'Sırbistan', flag: '🇷🇸', dial: '+381', currency: '€' },
       { name: 'Arnavutluk', flag: '🇦🇱', dial: '+355', currency: '€' },
-      { name: 'Bosna Hersek', flag: '🇧🇦', dial: '+387', currency: '€' },
-      { name: 'Almanya', flag: '🇩🇪', dial: '+49', currency: '€' },
-      { name: 'İngiltere', flag: '🇬🇧', dial: '+44', currency: '£' },
-      { name: 'Amerika', flag: '🇺🇸', dial: '+1', currency: '$' }
+      { name: 'Bosna Hersek', flag: '🇧🇦', dial: '+387', currency: '€' }
     ];
     const AIRPORT_DATABASE = {
       'Karadağ': ['Tivat (TIV)', 'Podgorica (TGD)'],
-      'Türkiye': ['İstanbul (IST)', 'Sabiha Gökçen (SAW)', 'Antalya (AYT)', 'İzmir (ADB)', 'Ankara (ESB)', 'Dalaman (DLM)', 'Bodrum (BJV)'],
-      'Sırbistan': ['Belgrad (BEG)', 'Niş (INI)'],
+      'Türkiye': ['İstanbul (IST)', 'Antalya (AYT)', 'İzmir (ADB)'],
+      'Sırbistan': ['Belgrad (BEG)'],
       'Arnavutluk': ['Tiran (TIA)'],
-      'Bosna Hersek': ['Saraybosna (SJJ)'],
-      'Almanya': ['Frankfurt (FRA)', 'Münih (MUC)', 'Berlin (BER)'],
-      'İngiltere': ['Heathrow (LHR)', 'Gatwick (LGW)'],
-      'Amerika': ['JFK New York (JFK)', 'Miami (MIA)']
+      'Bosna Hersek': ['Saraybosna (SJJ)']
     };
     const CAR_DATABASE = {
-      'Alfa Romeo': ['Giulietta', 'Giulia', 'Stelvio', 'Tonale'],
-      'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'Q2', 'Q3', 'Q5', 'Q7', 'Q8'],
-      'BMW': ['1 Serisi', '3 Serisi', '5 Serisi', 'X1', 'X3', 'X5'],
-      'BYD': ['Atto 3', 'Seal', 'Dolphin'],
-      'Chery': ['Tiggo 7 Pro', 'Tiggo 8 Pro', 'Omoda 5'],
-      'Citroen': ['C3', 'C4', 'C5 Aircross'],
-      'Cupra': ['Formentor', 'Leon'],
-      'Dacia': ['Sandero', 'Duster', 'Jogger'],
-      'Fiat': ['Egea', 'Panda', '500', 'Fiorino', 'Doblo'],
-      'Ford': ['Fiesta', 'Focus', 'Puma', 'Kuga'],
-      'Honda': ['Civic', 'HR-V', 'CR-V'],
-      'Hyundai': ['i20', 'Elantra', 'Tucson', 'Bayon'],
-      'Kia': ['Rio', 'Ceed', 'Sportage', 'Stonic'],
-      'Mercedes-Benz': ['A-Serisi', 'C-Serisi', 'E-Serisi', 'GLA', 'GLC', 'Vito'],
-      'MG': ['ZS', 'HS', 'MG4'],
-      'Nissan': ['Micra', 'Juke', 'Qashqai', 'X-Trail'],
-      'Opel': ['Corsa', 'Astra', 'Mokka', 'Grandland'],
-      'Peugeot': ['208', '308', '2008', '3008', '5008'],
-      'Renault': ['Clio', 'Taliant', 'Megane', 'Captur', 'Austral'],
-      'Skoda': ['Fabia', 'Octavia', 'Superb', 'Kamiq', 'Karoq', 'Kodiaq'],
-      'Tesla': ['Model 3', 'Model Y', 'Model S'],
-      'Toyota': ['Yaris', 'Corolla', 'C-HR', 'RAV4'],
-      'Volkswagen': ['Polo', 'Golf', 'Passat', 'T-Roc', 'Tiguan', 'ID.4'],
-      'Volvo': ['XC40', 'XC60', 'XC90']
+      'Audi': ['A3', 'A4', 'Q3', 'Q5'],
+      'BMW': ['1 Serisi', '3 Serisi', 'X1'],
+      'Fiat': ['Egea', 'Panda', '500'],
+      'Ford': ['Focus', 'Puma'],
+      'Renault': ['Clio', 'Megane', 'Captur'],
+      'Volkswagen': ['Polo', 'Golf', 'Passat']
     };
 
     document.addEventListener('alpine:init', () => {
-      Alpine.data('supplierApp', () => ({
+      Alpine.data('supplierPortal', () => ({
+        isLoggedIn: false,
+        inputCompanyName: '',
+        companyName: '',
+        activeTab: 'cars',
+        cars: [],
         countries: GLOBAL_COUNTRIES,
         airportData: AIRPORT_DATABASE,
         carData: CAR_DATABASE,
         availableModels: [],
         availableAirports: [],
         form: { 
-          brand: '', model: '', year: 2026, category: 'Ekonomik', fuelType: 'Benzin', luggageCapacity: '', 
-          supplierName: '', phoneOnly: '', dialCode: '+382', country: '', airports: '', supplierPrice: '', currency: '€' 
+          brand: '', model: '', year: 2026, category: 'Ekonomik', fuelType: 'Benzin', luggageCapacity: 2, 
+          phoneOnly: '', dialCode: '+382', country: '', airports: '', supplierPrice: '', currency: '€' 
         },
         message: '',
         isError: false,
+
+        async init() {
+          await this.fetchCars();
+          const savedCompany = localStorage.getItem('flexi_supplier_company');
+          if (savedCompany) {
+            this.companyName = savedCompany;
+            this.isLoggedIn = true;
+          }
+        },
+
+        async fetchCars() {
+          try {
+            const res = await fetch('/api/cars');
+            this.cars = await res.json();
+          } catch (err) {}
+        },
+
+        loginSupplier() {
+          if (!this.inputCompanyName.trim()) return;
+          this.companyName = this.inputCompanyName.trim();
+          localStorage.setItem('flexi_supplier_company', this.companyName);
+          this.isLoggedIn = true;
+        },
+
+        logout() {
+          localStorage.removeItem('flexi_supplier_company');
+          this.isLoggedIn = false;
+          this.inputCompanyName = '';
+        },
+
+        get myCars() {
+          return this.cars.filter(c => c.supplierName.toLowerCase() === this.companyName.toLowerCase());
+        },
+
+        get totalSupplierEarnings() {
+          return this.myCars.filter(c => c.available).reduce((acc, c) => acc + (c.supplierPrice || 0), 0);
+        },
+
+        get averageDaysInSystem() {
+          if (this.myCars.length === 0) return 0;
+          const now = new Date();
+          const totalDays = this.myCars.reduce((acc, c) => {
+            const created = new Date(c.createdAt);
+            const diffTime = Math.abs(now - created);
+            return acc + Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          }, 0);
+          return Math.round(totalDays / this.myCars.length);
+        },
+
         updateCountryData(val) {
           this.form.airports = ''; 
           const c = this.countries.find(x => x.name === val);
@@ -629,22 +780,30 @@ app.get('/tedarikci-paneli', (req, res) => {
             this.availableAirports = [];
           }
         },
+
         async submitCar() {
           try {
             const fullContact = this.form.dialCode + ' ' + this.form.phoneOnly;
-            const payload = { ...this.form, supplierContact: fullContact };
+            const payload = { 
+              ...this.form, 
+              supplierName: this.companyName, 
+              supplierContact: fullContact 
+            };
 
             const res = await fetch('/api/cars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {
-              this.isError = false; this.message = 'Aracınız başarıyla ağımıza eklendi!';
-              const currentCountry = this.form.country;
-              const currentDial = this.form.dialCode;
-              const currentCurrency = this.form.currency;
-              this.form = { brand: '', model: '', year: 2026, category: 'Ekonomik', fuelType: 'Benzin', luggageCapacity: '', supplierName: '', phoneOnly: '', dialCode: currentDial, country: currentCountry, airports: '', supplierPrice: '', currency: currentCurrency };
-              this.availableModels = []; 
+              this.isError = false; 
+              this.message = 'Aracınız başarıyla filonuza eklendi!';
+              await this.fetchCars();
+              this.activeTab = 'cars';
               setTimeout(() => { this.message = ''; }, 3000); 
             } else { this.isError = true; this.message = 'Kayıt başarısız.'; }
           } catch (err) { this.isError = true; this.message = 'Bağlantı hatası!'; }
+        },
+
+        async toggleMyCarStatus(id) {
+          await fetch('/api/cars/' + id + '/status', { method: 'PATCH' });
+          await this.fetchCars();
         }
       }));
     });
@@ -654,5 +813,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive Enterprise sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive Tedarikçi Operasyon Merkezi http://localhost:${PORT} adresinde aktif!`);
 });
