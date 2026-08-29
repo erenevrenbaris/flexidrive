@@ -12,7 +12,7 @@ app.use(express.json());
 const mongoURI = 'mongodb+srv://erenevrenbaris_db_user:Flexi12345@cluster0.ekq2qzw.mongodb.net/flexidrive?retryWrites=true&w=majority';
 
 mongoose.connect(mongoURI)
-  .then(() => console.log('MongoDB veritabanı bağlantısı başarılı!'))
+  .then(() => console.log('MongoDB kurumsal veritabanı bağlantısı başarılı!'))
   .catch((err) => console.error('Veritabanı bağlantı hatası:', err));
 
 // 2. Veritabanı Modeli
@@ -147,43 +147,57 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. ANA YÖNETİCİ PANELİ (Orijinal Site Stilinde Ferah / Açık Tema)
+// 4. KURUMSAL ADMIN PANELİ (Şampanya Arka Plan & Altın Sarısı VIP Detaylar)
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
-<html lang="tr" class="h-full bg-slate-50">
+<html lang="tr" class="h-full" style="background-color: #f4f2ee;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlexiDrive Admin HQ</title>
+  <title>FlexiDrive Admin HQ | VIP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f2ee; color: #1c1917; }
     [x-cloak] { display: none !important; }
+    .gold-border { border-color: rgba(217, 119, 6, 0.3); }
+    .gold-badge { background-color: rgba(251, 191, 36, 0.15); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
+    .gold-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; }
+    .gold-btn:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1em;
+    }
+    select::-ms-expand { display: none; }
   </style>
 </head>
-<body class="h-full text-slate-900 flex flex-col" x-data="adminApp()">
+<body class="h-full flex flex-col" x-data="adminApp()">
 
-  <!-- Orijinal Sitenin Header Çizgisi -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+  <header class="bg-white border-b gold-border sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="bg-red-600 text-white p-2 rounded-xl flex items-center justify-center font-black text-lg shadow-md"><i class="fa-solid fa-car"></i></div>
-        <span class="text-2xl font-black tracking-tighter text-slate-900">FlexiDrive</span>
+        <div class="gold-btn p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md"><i class="fa-solid fa-crown"></i></div>
+        <div>
+          <span class="text-2xl font-black tracking-tight text-stone-900">FlexiDrive</span> 
+          <span class="text-[9px] font-extrabold gold-badge px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">VIP HQ</span>
+        </div>
       </div>
       <div class="flex items-center space-x-3">
-        <button @click="activeTab = 'admin'" :class="activeTab === 'admin' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
+        <button @click="activeTab = 'admin'" :class="activeTab === 'admin' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
           <i class="fa-solid fa-car mr-1.5"></i> Filo Operasyonları
         </button>
-        <button @click="activeTab = 'partners'" :class="activeTab === 'partners' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
+        <button @click="activeTab = 'partners'" :class="activeTab === 'partners' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
           <i class="fa-solid fa-earth-europe mr-1.5"></i> Tedarikçi Ağı
         </button>
-        <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
+        <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all">
           <i class="fa-solid fa-network-wired mr-1.5"></i> Meta-Search Feed
         </button>
-        <a href="/tedarikci-paneli" target="_blank" class="text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl font-bold text-xs transition-all border border-red-200 flex items-center">
+        <a href="/tedarikci-paneli" target="_blank" class="gold-badge hover:opacity-80 px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center">
           <i class="fa-solid fa-external-link-alt mr-1.5"></i> Tedarikçi Portalı
         </a>
       </div>
@@ -195,42 +209,42 @@ app.get('/', (req, res) => {
     <!-- SEKME 1: FİLO -->
     <div x-show="activeTab === 'admin'" x-transition>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-slate-900" x-text="cars.length">0</h3></div><div class="text-slate-400 text-3xl"><i class="fa-solid fa-car"></i></div></div>
-        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-600" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-500 text-3xl"><i class="fa-solid fa-circle-check"></i></div></div>
-        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Model</p><h3 class="text-3xl font-black mt-1 text-slate-900">B2B Broker</h3></div><div class="text-indigo-500 text-3xl"><i class="fa-solid fa-globe"></i></div></div>
-        <div class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex justify-between items-center overflow-hidden">
+        <div class="bg-white border gold-border p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-stone-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-stone-900" x-text="cars.length">0</h3></div><div class="text-amber-600 text-3xl"><i class="fa-solid fa-car"></i></div></div>
+        <div class="bg-white border gold-border p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-stone-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-600" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-500 text-3xl"><i class="fa-solid fa-circle-check"></i></div></div>
+        <div class="bg-white border gold-border p-6 rounded-3xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-stone-400 uppercase tracking-wider">Model</p><h3 class="text-3xl font-black mt-1 text-amber-700">VIP B2B</h3></div><div class="text-amber-600 text-3xl"><i class="fa-solid fa-gem"></i></div></div>
+        <div class="bg-white border gold-border p-6 rounded-3xl shadow-sm flex justify-between items-center overflow-hidden">
           <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Ciro</p>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Günlük Potansiyel Ciro</p>
             <div class="flex flex-col space-y-1">
-              <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-red-600 leading-none" x-text="val + ' ' + cur"></span></template>
-              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-400">0</span>
+              <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-amber-700 leading-none" x-text="val + ' ' + cur"></span></template>
+              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-stone-400">0</span>
             </div>
           </div>
-          <div class="text-red-500 text-3xl"><i class="fa-solid fa-wallet"></i></div>
+          <div class="text-amber-600 text-3xl"><i class="fa-solid fa-wallet"></i></div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <template x-for="car in cars" :key="car._id">
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+          <div class="bg-white border gold-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <div class="flex justify-between items-start mb-3">
                 <div>
-                  <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase" x-text="car.category"></span>
-                  <h4 class="text-base font-extrabold text-slate-900 mt-1" x-text="car.brand + ' ' + car.model"></h4>
+                  <span class="text-[9px] font-extrabold px-2 py-0.5 rounded gold-badge uppercase" x-text="car.category"></span>
+                  <h4 class="text-base font-extrabold text-stone-900 mt-1" x-text="car.brand + ' ' + car.model"></h4>
                 </div>
                 <span :class="car.available ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'" class="px-2.5 py-1 rounded-lg text-[10px] font-black border" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
               </div>
-              <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-building text-slate-400 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
+              <p class="text-xs text-stone-500 mt-1"><i class="fa-solid fa-building text-amber-600 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
               
-              <div class="bg-slate-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-slate-200">
-                <div class="flex justify-between"><span class="text-slate-500">Net / Satış:</span><span class="font-bold text-slate-900" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Yayınlanma:</span><span class="font-bold text-slate-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
+              <div class="bg-stone-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200">
+                <div class="flex justify-between"><span class="text-stone-500">Net / Satış:</span><span class="font-bold text-amber-700" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span></div>
+                <div class="flex justify-between"><span class="text-stone-500">Yayınlanma:</span><span class="font-bold text-stone-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
               </div>
             </div>
             
-            <div class="pt-4 border-t border-slate-100 flex justify-between items-center text-xs">
-              <button @click="toggleStatus(car._id)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
+            <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-xs">
+              <button @click="toggleStatus(car._id)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
               <button @click="deleteCar(car._id)" class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 px-3 py-2 rounded-xl font-bold transition-all"><i class="fa-solid fa-trash-can mr-1"></i> Aracı Kaldır</button>
             </div>
           </div>
@@ -242,35 +256,35 @@ app.get('/', (req, res) => {
     <div x-show="activeTab === 'partners'" x-cloak x-transition>
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-xl font-extrabold text-slate-900">Ülke Bazlı Tedarikçi Hacim Raporu</h2>
-          <p class="text-xs text-slate-500 mt-1">Ülkelere göre gruplanmış tedarikçi firmalarınız ve bölgesel araç hacimleriniz</p>
+          <h2 class="text-xl font-extrabold text-stone-900">Ülke Bazlı Tedarikçi Hacim Raporu</h2>
+          <p class="text-xs text-stone-500 mt-1">Ülkelere göre gruplanmış tedarikçi firmalarınız ve bölgesel araç hacimleriniz</p>
         </div>
-        <div class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200">
-          Aktif Bölge: <span class="text-slate-900 font-black" x-text="groupedSuppliersByCountry.length">0</span> Ülke
+        <div class="gold-badge px-4 py-2 rounded-xl text-xs font-bold">
+          Aktif Bölge: <span class="text-stone-900 font-black" x-text="groupedSuppliersByCountry.length">0</span> Ülke
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <template x-for="group in groupedSuppliersByCountry" :key="group.country">
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div class="bg-white border gold-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
             <div>
-              <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+              <div class="flex justify-between items-center mb-6 pb-4 border-b border-stone-100">
                 <div class="flex items-center space-x-3">
                   <div class="text-4xl" x-text="group.flag"></div>
                   <div>
-                    <h3 class="text-xl font-black text-slate-900" x-text="group.country"></h3>
-                    <p class="text-xs text-slate-500">Toplam <strong class="text-slate-900" x-text="group.suppliers.length"></strong> Firma / <strong class="text-emerald-600" x-text="group.totalCars"></strong> Araç Hacmi</p>
+                    <h3 class="text-xl font-black text-stone-900" x-text="group.country"></h3>
+                    <p class="text-xs text-stone-500">Toplam <strong class="text-amber-700" x-text="group.suppliers.length"></strong> Firma / <strong class="text-emerald-600" x-text="group.totalCars"></strong> Araç Hacmi</p>
                   </div>
                 </div>
               </div>
               <div class="space-y-3">
                 <template x-for="supplier in group.suppliers" :key="supplier.name">
-                  <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex justify-between items-center">
+                  <div class="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex justify-between items-center">
                     <div>
-                      <h4 class="text-sm font-bold text-slate-900" x-text="supplier.name"></h4>
-                      <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-phone text-emerald-600 mr-1"></i> <span class="font-mono" x-text="supplier.contact"></span></p>
+                      <h4 class="text-sm font-bold text-stone-900" x-text="supplier.name"></h4>
+                      <p class="text-xs text-stone-500 mt-1"><i class="fa-solid fa-phone text-emerald-600 mr-1"></i> <span class="font-mono" x-text="supplier.contact"></span></p>
                     </div>
-                    <span class="bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1 rounded-full" x-text="supplier.carCount + ' Araç'"></span>
+                    <span class="gold-badge text-xs font-bold px-3 py-1 rounded-full" x-text="supplier.carCount + ' Araç'"></span>
                   </div>
                 </template>
               </div>
@@ -282,21 +296,21 @@ app.get('/', (req, res) => {
 
     <!-- SEKME 3: META-SEARCH FEED -->
     <div x-show="activeTab === 'integrations'" x-cloak x-transition>
-      <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-        <div class="flex items-center space-x-3 mb-6 border-b border-slate-100 pb-4">
-          <div class="bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-center text-xl shadow"><i class="fa-solid fa-satellite-dish"></i></div>
+      <div class="bg-white border gold-border rounded-3xl p-8 shadow-sm">
+        <div class="flex items-center space-x-3 mb-6 border-b border-stone-100 pb-4">
+          <div class="gold-btn p-3 rounded-2xl flex items-center justify-center text-xl shadow"><i class="fa-solid fa-satellite-dish"></i></div>
           <div>
-            <h2 class="text-xl font-black text-slate-900">Meta-Search Entegrasyon Merkezi</h2>
-            <p class="text-xs text-slate-500">Skyscanner ve Kayak gibi platformların envanterinizi çekeceği açık API adresi.</p>
+            <h2 class="text-xl font-black text-stone-900">Meta-Search Entegrasyon Merkezi</h2>
+            <p class="text-xs text-stone-500">Skyscanner ve Kayak gibi platformların envanterinizi çekeceği açık API adresi.</p>
           </div>
         </div>
 
         <div class="space-y-4">
-          <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-2">
-            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">Resmi JSON Feed Bağlantı Adresi</span>
+          <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 space-y-2">
+            <span class="text-xs font-bold text-stone-600 uppercase tracking-wider block">Resmi JSON Feed Bağlantı Adresi</span>
             <div class="flex space-x-2">
-              <input type="text" readonly :value="windowOrigin + '/api/feed/global-inventory'" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-xs text-emerald-600 font-mono focus:outline-none">
-              <button @click="navigator.clipboard.writeText(windowOrigin + '/api/feed/global-inventory'); alert('URL kopyalandı!')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-xl text-xs whitespace-nowrap shadow">Kopyala</button>
+              <input type="text" readonly :value="windowOrigin + '/api/feed/global-inventory'" class="w-full bg-white border border-stone-300 rounded-xl px-4 py-3 text-xs text-amber-700 font-mono focus:outline-none">
+              <button @click="navigator.clipboard.writeText(windowOrigin + '/api/feed/global-inventory'); alert('URL kopyalandı!')" class="gold-btn font-bold px-5 py-3 rounded-xl text-xs whitespace-nowrap shadow">Kopyala</button>
             </div>
           </div>
         </div>
@@ -369,10 +383,10 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Orijinal Site Stilinde Ferah / Açık Tema)
+// 5. TEDARİKÇİ PORTALI (Şampanya Arka Plan & Altın Sarısı VIP Detaylar)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
-<html lang="tr" class="h-full bg-slate-50">
+<html lang="tr" class="h-full" style="background-color: #f4f2ee;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -382,11 +396,15 @@ app.get('/tedarikci-paneli', (req, res) => {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f2ee; color: #1c1917; }
     [x-cloak] { display: none !important; }
+    .gold-border { border-color: rgba(217, 119, 6, 0.3); }
+    .gold-badge { background-color: rgba(251, 191, 36, 0.15); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
+    .gold-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; }
+    .gold-btn:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
     select {
       appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right 1rem center;
       background-size: 1em;
@@ -394,20 +412,20 @@ app.get('/tedarikci-paneli', (req, res) => {
     select::-ms-expand { display: none; }
   </style>
 </head>
-<body class="h-full text-slate-900 flex flex-col" x-data="supplierPortal()">
+<body class="h-full flex flex-col" x-data="supplierPortal()">
 
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+  <header class="bg-white border-b gold-border sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
       <div @click="activeTab = 'cars'" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüye Dön">
-        <div class="bg-red-600 text-white p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md group-hover:scale-105 transition-transform"><i class="fa-solid fa-car"></i></div>
-        <span class="text-2xl font-black tracking-tighter text-slate-900">FlexiDrive <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 ml-1">Tedarikçi</span></span>
+        <div class="gold-btn p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md group-hover:scale-105 transition-transform"><i class="fa-solid fa-car-side"></i></div>
+        <span class="text-2xl font-black tracking-tighter text-stone-900">FlexiDrive <span class="text-[10px] font-extrabold gold-badge px-2.5 py-0.5 rounded-full ml-1 uppercase">Tedarikçi</span></span>
       </div>
       
       <div class="flex items-center space-x-2" x-show="isLoggedIn">
-        <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-car mr-1.5"></i> Araçlarım</button>
-        <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-wallet mr-1.5"></i> Hesap Özeti</button>
-        <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-chart-line mr-1.5"></i> İstatistikler</button>
-        <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center border border-slate-300"><i class="fa-solid fa-plus-circle mr-1.5"></i> Yeni Araç Ekle</button>
+        <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-car mr-1.5"></i> Araçlarım</button>
+        <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-wallet mr-1.5"></i> Hesap Özeti</button>
+        <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center"><i class="fa-solid fa-chart-line mr-1.5"></i> İstatistikler</button>
+        <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'bg-stone-900 text-white shadow' : 'text-stone-600 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-semibold text-xs transition-all flex items-center border gold-border"><i class="fa-solid fa-plus-circle mr-1.5"></i> Yeni Araç Ekle</button>
         <button @click="logout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-xl text-xs transition-all ml-2 border border-rose-200" title="Çıkış Yap"><i class="fa-solid fa-right-from-bracket text-base"></i></button>
       </div>
     </div>
@@ -415,59 +433,59 @@ app.get('/tedarikci-paneli', (req, res) => {
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center">
 
-    <div x-show="!isLoggedIn" class="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-sm text-center">
-      <div class="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border border-red-200"><i class="fa-solid fa-building-user"></i></div>
-      <h2 class="text-2xl font-black text-slate-900 mb-2">Tedarikçi Girişi</h2>
-      <p class="text-xs text-slate-500 mb-6">Sistemde kayıtlı olan Firma Adınızı yazarak kendi araç filonuza ve finansal özetinize ulaşın.</p>
+    <div x-show="!isLoggedIn" class="max-w-md mx-auto bg-white border gold-border rounded-3xl p-8 shadow-sm text-center">
+      <div class="w-16 h-16 gold-badge rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border"><i class="fa-solid fa-building-user"></i></div>
+      <h2 class="text-2xl font-black text-stone-900 mb-2">Tedarikçi Girişi</h2>
+      <p class="text-xs text-stone-500 mb-6">Sistemde kayıtlı olan Firma Adınızı yazarak kendi araç filonuza ve finansal özetinize ulaşın.</p>
       
       <form @submit.prevent="loginSupplier()" class="space-y-4">
-        <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: budvarent)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm text-center font-bold focus:outline-none focus:border-slate-900">
-        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl shadow transition-all text-sm">Panele Giriş Yap <i class="fa-solid fa-arrow-right ml-2"></i></button>
+        <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: budvarent)" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm text-center font-bold focus:outline-none focus:border-stone-900">
+        <button type="submit" class="w-full gold-btn font-black py-3 rounded-xl shadow transition-all text-sm">Panele Giriş Yap <i class="fa-solid fa-arrow-right ml-2"></i></button>
       </form>
     </div>
 
     <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
       
-      <div @click="activeTab = 'cars'" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-slate-400 transition-all">
+      <div @click="activeTab = 'cars'" class="bg-white border gold-border rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-amber-500 transition-all">
         <div class="flex items-center space-x-4 mb-4 md:mb-0">
-          <div class="w-14 h-14 rounded-2xl bg-red-600 flex items-center justify-center font-black text-xl text-white shadow"><i class="fa-solid fa-car-side"></i></div>
+          <div class="w-14 h-14 rounded-2xl gold-btn flex items-center justify-center font-black text-xl text-white shadow"><i class="fa-solid fa-car-side"></i></div>
           <div>
-            <h2 class="text-xl font-extrabold text-slate-900" x-text="companyName"></h2>
-            <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Aktif Tedarikçi Paneli (Ana Menüye Dön)</p>
+            <h2 class="text-xl font-extrabold text-stone-900" x-text="companyName"></h2>
+            <p class="text-xs text-stone-500 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Aktif VIP Tedarikçi Paneli (Ana Menüye Dön)</p>
           </div>
         </div>
-        <div class="flex space-x-4 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs text-center">
-          <div><span class="text-slate-400 block uppercase font-bold text-[10px]">Toplam Araç</span><span class="text-lg font-black text-slate-900" x-text="myCars.length">0</span></div>
-          <div class="border-l border-slate-200 pl-4"><span class="text-slate-400 block uppercase font-bold text-[10px]">Müsait Araç</span><span class="text-lg font-black text-emerald-600" x-text="myCars.filter(c => c.available).length">0</span></div>
+        <div class="flex space-x-4 bg-stone-50 p-3 rounded-2xl border border-stone-200 text-xs text-center">
+          <div><span class="text-stone-400 block uppercase font-bold text-[10px]">Toplam Araç</span><span class="text-lg font-black text-stone-900" x-text="myCars.length">0</span></div>
+          <div class="border-l border-stone-200 pl-4"><span class="text-stone-400 block uppercase font-bold text-[10px]">Müsait Araç</span><span class="text-lg font-black text-emerald-600" x-text="myCars.filter(c => c.available).length">0</span></div>
         </div>
       </div>
 
       <div x-show="activeTab === 'cars'" x-transition>
         <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-extrabold text-slate-900"><i class="fa-solid fa-car text-red-600 mr-2"></i> Sistemdeki Araçlarım</h3>
-          <button @click="activeTab = 'add'" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all shadow"><i class="fa-solid fa-plus mr-1"></i> Yeni Araç Ekle</button>
+          <h3 class="text-lg font-extrabold text-stone-900"><i class="fa-solid fa-car text-amber-600 mr-2"></i> Sistemdeki Araçlarım</h3>
+          <button @click="activeTab = 'add'" class="gold-btn font-bold px-4 py-2 rounded-xl text-xs transition-all shadow"><i class="fa-solid fa-plus mr-1"></i> Yeni Araç Ekle</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <template x-for="car in myCars" :key="car._id">
-            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="bg-white border gold-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
               <div>
                 <div class="flex justify-between items-start mb-3">
                   <div>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase" x-text="car.category"></span>
-                    <h4 class="text-base font-extrabold text-slate-900 mt-2" x-text="car.brand + ' ' + car.model"></h4>
-                    <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot text-red-600 mr-1"></i> <span x-text="car.country + ' / ' + car.airports"></span></p>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded gold-badge uppercase" x-text="car.category"></span>
+                    <h4 class="text-base font-extrabold text-stone-900 mt-2" x-text="car.brand + ' ' + car.model"></h4>
+                    <p class="text-xs text-stone-500 mt-1"><i class="fa-solid fa-location-dot text-amber-600 mr-1"></i> <span x-text="car.country + ' / ' + car.airports"></span></p>
                   </div>
                   <span :class="car.available ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'" class="px-2.5 py-1 rounded-lg text-[10px] font-black border" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-slate-200">
-                  <div class="flex justify-between"><span class="text-slate-500">Yayınlanma Tarihi:</span><span class="font-bold text-slate-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
-                  <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazanç:</span><span class="font-black text-red-600" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
+                <div class="bg-stone-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200">
+                  <div class="flex justify-between"><span class="text-stone-500">Yayınlanma Tarihi:</span><span class="font-bold text-stone-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
+                  <div class="flex justify-between"><span class="text-stone-500">Günlük Net Kazanç:</span><span class="font-black text-amber-700" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
                 </div>
               </div>
-              <div class="pt-4 border-t border-slate-100 flex justify-between items-center text-xs">
-                <span class="text-slate-400">Yıl: <strong class="text-slate-800" x-text="car.year"></strong></span>
-                <button @click="toggleMyCarStatus(car._id)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
+              <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-xs">
+                <span class="text-stone-400">Yıl: <strong class="text-stone-800" x-text="car.year"></strong></span>
+                <button @click="toggleMyCarStatus(car._id)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
               </div>
             </div>
           </template>
@@ -475,74 +493,74 @@ app.get('/tedarikci-paneli', (req, res) => {
       </div>
 
       <div x-show="activeTab === 'wallet'" x-cloak x-transition>
-        <h3 class="text-lg font-extrabold text-slate-900 mb-6"><i class="fa-solid fa-wallet text-red-600 mr-2"></i> Hesap Özeti & Finansal Rapor</h3>
+        <h3 class="text-lg font-extrabold text-stone-900 mb-6"><i class="fa-solid fa-wallet text-amber-600 mr-2"></i> Hesap Özeti & Finansal Rapor</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Toplam Aktif Araç Kazanç Potansiyeli</span>
-            <div class="text-3xl font-black text-red-600" x-text="totalSupplierEarnings + ' €'"></div>
-            <p class="text-xs text-slate-500 mt-2">Müsait durumdaki tüm araçlarınızın günlük net toplam kazancıdır.</p>
+          <div class="bg-white border gold-border rounded-3xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block mb-2">Toplam Aktif Araç Kazanç Potansiyeli</span>
+            <div class="text-3xl font-black text-amber-700" x-text="totalSupplierEarnings + ' €'"></div>
+            <p class="text-xs text-stone-500 mt-2">Müsait durumdaki tüm araçlarınızın günlük net toplam kazancıdır.</p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">İş Modeli</span>
-            <div class="text-xl font-bold text-slate-900">Global B2B Dağıtım Sözleşmesi</div>
-            <p class="text-xs text-slate-500 mt-2">FlexiDrive uluslararası broker ağı iş birliği kapsamındadır.</p>
+          <div class="bg-white border gold-border rounded-3xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block mb-2">İş Modeli</span>
+            <div class="text-xl font-bold text-stone-900">Global B2B Dağıtım Sözleşmesi</div>
+            <p class="text-xs text-stone-500 mt-2">FlexiDrive uluslararası havalimanı ve broker dağıtım anlaşması kapsamındadır.</p>
           </div>
         </div>
       </div>
 
       <div x-show="activeTab === 'stats'" x-cloak x-transition>
-        <h3 class="text-lg font-extrabold text-slate-900 mb-6"><i class="fa-solid fa-chart-line text-red-600 mr-2"></i> Kiralama Performans İstatistikleri</h3>
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
-          <div class="flex justify-between items-center pb-4 border-b border-slate-100 text-xs">
-            <span class="text-slate-500 font-bold">Toplam Filo Havuzundaki Payınız</span>
-            <span class="text-slate-900 font-black text-sm" x-text="myCars.length + ' Araç'"></span>
+        <h3 class="text-lg font-extrabold text-stone-900 mb-6"><i class="fa-solid fa-chart-line text-amber-600 mr-2"></i> Kiralama Performans İstatistikleri</h3>
+        <div class="bg-white border gold-border rounded-3xl p-6 space-y-4 shadow-sm">
+          <div class="flex justify-between items-center pb-4 border-b border-stone-100 text-xs">
+            <span class="text-stone-500 font-bold">Toplam Filo Havuzundaki Payınız</span>
+            <span class="text-stone-900 font-black text-sm" x-text="myCars.length + ' Araç'"></span>
           </div>
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-500 font-bold">Operasyonel Durum</span>
+            <span class="text-stone-500 font-bold">Operasyonel Durum</span>
             <span class="text-emerald-600 font-black bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Sorunsuz & Aktif</span>
           </div>
         </div>
       </div>
 
-      <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-        <h3 class="text-xl font-black text-slate-900 mb-2"><i class="fa-solid fa-plus-circle text-red-600 mr-2"></i> Filoya Yeni Araç Ekle</h3>
-        <p class="text-xs text-slate-500 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-slate-900" x-text="companyName"></strong> (Maksimum günlük net kazanç sınırı 400 €'dur).</p>
+      <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-white border gold-border rounded-3xl p-8 shadow-sm relative overflow-hidden">
+        <h3 class="text-xl font-black text-stone-900 mb-2"><i class="fa-solid fa-plus-circle text-amber-600 mr-2"></i> Filoya Yeni Araç Ekle</h3>
+        <p class="text-xs text-stone-500 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-stone-900" x-text="companyName"></strong> (Maksimum günlük net kazanç sınırı 400 €'dur).</p>
         
         <form @submit.prevent="submitCar" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-4">
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ülke Seçimi</label>
-                <select x-model="form.country" @change="updateCountryData(form.country)" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm font-bold">
+                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Ülke Seçimi</label>
+                <select x-model="form.country" @change="updateCountryData(form.country)" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm font-bold">
                   <option value="" disabled selected>Ülke Seçin</option>
                   <template x-for="c in countries" :key="c.name"><option :value="c.name" x-text="c.flag + ' ' + c.name"></option></template>
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Havalimanı / Teslim Noktası</label>
-                <select x-model="form.airports" required :disabled="!form.country" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm font-bold disabled:opacity-40">
+                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Havalimanı / Teslim Noktası</label>
+                <select x-model="form.airports" required :disabled="!form.country" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm font-bold disabled:opacity-40">
                   <option value="" disabled selected>Önce Ülke Seçin</option>
                   <template x-for="airport in availableAirports" :key="airport"><option :value="airport" x-text="airport"></option></template>
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">İletişim Numarası (Telefon)</label>
-                <input type="tel" x-model="form.phoneOnly" required placeholder="5XX XXX XX XX" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm font-mono">
+                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">İletişim Numarası (Telefon)</label>
+                <input type="tel" x-model="form.phoneOnly" required placeholder="5XX XXX XX XX" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm font-mono">
               </div>
             </div>
 
             <div class="space-y-4">
               <div class="flex space-x-3">
                 <div class="w-1/2">
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Marka</label>
-                  <select x-model="form.brand" @change="form.model = ''; availableModels = carData[form.brand] || []" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-slate-900 text-sm font-bold">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Marka</label>
+                  <select x-model="form.brand" @change="form.model = ''; availableModels = carData[form.brand] || []" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold">
                     <option value="" disabled selected>Marka Seçin</option>
                     <template x-for="(models, brandName) in carData" :key="brandName"><option :value="brandName" x-text="brandName"></option></template>
                   </select>
                 </div>
                 <div class="w-1/2">
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Model</label>
-                  <select x-model="form.model" required :disabled="!form.brand" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-slate-900 text-sm font-bold disabled:opacity-40">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Model</label>
+                  <select x-model="form.model" required :disabled="!form.brand" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold disabled:opacity-40">
                     <option value="" disabled selected>Önce Marka Seçin</option>
                     <template x-for="modelName in availableModels" :key="modelName"><option :value="modelName" x-text="modelName"></option></template>
                   </select>
@@ -551,18 +569,18 @@ app.get('/tedarikci-paneli', (req, res) => {
 
               <div class="grid grid-cols-3 gap-2">
                 <div>
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Yıl</label>
-                  <input type="number" x-model="form.year" required min="2000" max="2027" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-slate-900 text-sm font-bold">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Yıl</label>
+                  <input type="number" x-model="form.year" required min="2000" max="2027" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold">
                 </div>
                 <div>
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sınıf</label>
-                  <select x-model="form.category" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-3 text-slate-900 text-sm font-bold">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Sınıf</label>
+                  <select x-model="form.category" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-2 py-3 text-stone-900 text-sm font-bold">
                     <option value="Ekonomik">Ekonomik</option><option value="SUV">SUV</option><option value="Sedan">Sedan</option><option value="Lüks">Lüks</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Yakıt</label>
-                  <select x-model="form.fuelType" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-3 text-slate-900 text-sm font-bold">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Yakıt</label>
+                  <select x-model="form.fuelType" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-2 py-3 text-stone-900 text-sm font-bold">
                     <option value="Benzin">Benzin</option><option value="Dizel">Dizel</option><option value="Hibrit">Hibrit</option><option value="Elektrik">Elektrik</option>
                   </select>
                 </div>
@@ -570,14 +588,14 @@ app.get('/tedarikci-paneli', (req, res) => {
 
               <div class="flex space-x-3">
                 <div class="w-1/3">
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Bavul</label>
-                  <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Adet" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-slate-900 text-sm font-bold">
+                  <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Bavul</label>
+                  <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Adet" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold">
                 </div>
                 <div class="w-2/3">
-                  <label class="block text-[10px] font-black text-red-600 uppercase tracking-wider mb-1">Günlük Net Kazanç (Max 400 €)</label>
+                  <label class="block text-[10px] font-black text-amber-700 uppercase tracking-wider mb-1">Günlük Net Kazanç (Max 400 €)</label>
                   <div class="relative">
-                    <span class="absolute left-3 top-3 text-red-600 font-black text-base" x-text="form.currency"></span>
-                    <input type="number" x-model="form.supplierPrice" required min="1" max="400" placeholder="Max 400" class="w-full bg-slate-50 border-2 border-slate-300 rounded-xl pl-8 pr-3 py-3 text-slate-900 text-sm font-black focus:border-slate-900">
+                    <span class="absolute left-3 top-3 text-amber-700 font-black text-base" x-text="form.currency"></span>
+                    <input type="number" x-model="form.supplierPrice" required min="1" max="400" placeholder="Max 400" class="w-full bg-stone-50 border-2 border-stone-300 rounded-xl pl-8 pr-3 py-3 text-stone-900 text-sm font-black focus:border-stone-900">
                   </div>
                 </div>
               </div>
@@ -586,7 +604,7 @@ app.get('/tedarikci-paneli', (req, res) => {
           
           <div x-show="message" x-text="message" :class="isError ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'" class="p-3 rounded-xl border text-sm font-bold text-center"></div>
           
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Aracı Sisteme Kaydet ve Listeme Ekle</button>
+          <button type="submit" class="w-full gold-btn font-black py-4 rounded-xl shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Aracı Sisteme Kaydet ve Listeme Ekle</button>
         </form>
       </div>
 
@@ -697,5 +715,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive şık açık tema sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive şampanya/altın VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
