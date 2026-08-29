@@ -37,7 +37,7 @@ const CarSchema = new mongoose.Schema({
 
 const Car = mongoose.model('Car', CarSchema);
 
-// 3. API Rotaları
+// 3. API Rotaları (Filo & Otomasyon)
 app.get('/api/cars', async (req, res) => {
   try {
     const cars = await Car.find().sort({ createdAt: -1 });
@@ -76,6 +76,7 @@ app.post('/api/cars', async (req, res) => {
   }
 });
 
+// Manuel Durum Değiştirme
 app.patch('/api/cars/:id/status', async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
@@ -88,7 +89,33 @@ app.patch('/api/cars/:id/status', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Tedarikçi Ağı İsim Listeli)
+// OTOMASYON 1: Dış Sistemden / Stay'den Rezervasyon Geldiğinde Aracı Kapat (Kiraya Ver)
+app.patch('/api/cars/:id/rent', async (req, res) => {
+  try {
+    const car = await Car.findById(req.params.id);
+    if (!car) return res.status(404).json({ error: 'Araç bulunamadı' });
+    car.available = false; // Otomatik kirada yap
+    await car.save();
+    res.json({ success: true, message: 'Araç başarıyla rezerve edildi ve kilitlendi.', car });
+  } catch (err) {
+    res.status(500).json({ error: 'Rezervasyon işlenemedi' });
+  }
+});
+
+// OTOMASYON 2: Rezervasyon Bittiğinde Aracı Tekrar Müsait Yap
+app.patch('/api/cars/:id/release', async (req, res) => {
+  try {
+    const car = await Car.findById(req.params.id);
+    if (!car) return res.status(404).json({ error: 'Araç bulunamadı' });
+    car.available = true; // Tekrar müsait yap
+    await car.save();
+    res.json({ success: true, message: 'Araç tekrar müsait konuma getirildi.', car });
+  } catch (err) {
+    res.status(500).json({ error: 'İşlem başarısız' });
+  }
+});
+
+// 4. KURUMSAL ADMIN PANELİ
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -186,20 +213,29 @@ app.get('/', (req, res) => {
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <template x-for="car in cars" :key="car._id">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-            <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
-            <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
+                <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
+              </div>
+              <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+              <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
+              <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
+            </div>
           </div>
         </template>
       </div>
     </div>
 
-    <!-- SEKME 2: TEDARİKÇİ AĞI (FİRMA İSİM LİSTESİ) -->
+    <!-- SEKME 2: TEDARİKÇİ AĞI -->
     <div x-show="activeTab === 'partners'" x-cloak x-transition>
       <div class="flex items-center justify-between mb-6">
         <div>
           <h2 class="text-xl font-extrabold text-white"><i class="fa-solid fa-building-shield text-indigo-400 mr-2"></i> Sistemdeki Kayıtlı Tedarikçi Firmalar</h2>
-          <p class="text-xs text-slate-400 mt-1">Sisteme kayıt olan tüm iş ortaklarınızın künyesi ve iletişim bilgileri</p>
+          <p class="text-xs text-slate-400 mt-1">Sisteme kayıt olan tüm iş ortaklarınızın künyesi</p>
         </div>
         <div class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-4 py-2 rounded-xl text-xs font-bold">
           Toplam Partner: <span class="text-white font-black" x-text="uniqueSuppliers.length">0</span> Firma
@@ -224,8 +260,8 @@ app.get('/', (req, res) => {
               </div>
 
               <div class="bg-slate-950 p-4 rounded-xl space-y-2 text-xs border border-slate-800/80 mb-4">
-                <div class="flex justify-between"><span class="text-slate-500">Yetkili GSM / Tel:</span><span class="font-mono text-emerald-400 font-bold" x-text="supplier.contact"></span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Teslimat Noktaları:</span><span class="font-bold text-slate-200" x-text="supplier.airports"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Yetkili GSM:</span><span class="font-mono text-emerald-400 font-bold" x-text="supplier.contact"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Lokasyon:</span><span class="font-bold text-slate-200" x-text="supplier.airports"></span></div>
               </div>
             </div>
 
@@ -237,9 +273,6 @@ app.get('/', (req, res) => {
             </div>
           </div>
         </template>
-        <div x-show="uniqueSuppliers.length === 0" class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
-          Henüz sisteme kayıt yapmış bir tedarikçi firma bulunmuyor.
-        </div>
       </div>
     </div>
 
@@ -251,9 +284,14 @@ app.get('/', (req, res) => {
         activeTab: 'admin',
         cars: [],
         windowOrigin: window.location.origin,
-        async init() {
+        async init() { await this.fetchCars(); },
+        async fetchCars() {
           const res = await fetch('/api/cars');
           this.cars = await res.json();
+        },
+        async toggleStatus(id) {
+          await fetch('/api/cars/' + id + '/status', { method: 'PATCH' });
+          await this.fetchCars();
         },
         get totalProfits() {
           const totals = {};
@@ -292,7 +330,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. GELİŞMİŞ TEDARİKÇİ PORTALI
+// 5. TEDARİKÇİ PORTALI (Otomatik API / Webhook Senkronizasyonlu)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -373,7 +411,7 @@ app.get('/tedarikci-paneli', (req, res) => {
           <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg"><i class="fa-solid fa-car-side"></i></div>
           <div>
             <h2 class="text-xl font-extrabold text-white" x-text="companyName"></h2>
-            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Aktif Tedarikçi Operasyon Paneli</p>
+            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Otomatik Webhook / API Senkronize Aktif</p>
           </div>
         </div>
         <div class="flex space-x-4 bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-xs text-center">
@@ -403,19 +441,16 @@ app.get('/tedarikci-paneli', (req, res) => {
                   <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-1 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
                 <div class="bg-slate-950 p-3 rounded-xl my-3 text-xs space-y-1.5 border border-slate-800/80">
-                  <div class="flex justify-between"><span class="text-slate-500">Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500 font-mono">Araç ID:</span><span class="font-mono text-indigo-400 font-bold" x-text="car._id"></span></div>
                   <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazanç:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
                 </div>
               </div>
               <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                <span class="text-slate-500">Yıl: <strong class="text-white" x-text="car.year"></strong></span>
+                <span class="text-slate-500">API Webhook Bağlı</span>
                 <button @click="toggleMyCarStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-all">Durum Değiştir</button>
               </div>
             </div>
           </template>
-          <div x-show="myCars.length === 0" class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
-            Bu firma adına kayıtlı araç bulunamadı. Lütfen yeni araç ekleyin.
-          </div>
         </div>
       </div>
 
@@ -445,12 +480,8 @@ app.get('/tedarikci-paneli', (req, res) => {
             <span class="text-white font-black text-sm" x-text="myCars.length + ' Araç'"></span>
           </div>
           <div class="flex justify-between items-center pb-4 border-b border-slate-800 text-xs">
-            <span class="text-slate-400 font-bold">Ortalama Araç Kalış Süresi (Sistemde)</span>
-            <span class="text-emerald-400 font-black text-sm" x-text="averageDaysInSystem + ' Gün'"></span>
-          </div>
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-bold">Operasyonel Durum</span>
-            <span class="text-emerald-400 font-black bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sorunsuz & Aktif</span>
+            <span class="text-slate-400 font-bold">Otomasyon Durumu</span>
+            <span class="text-emerald-400 font-black text-sm">Aktif Webhook Dinleniyor</span>
           </div>
         </div>
       </div>
@@ -638,17 +669,6 @@ app.get('/tedarikci-paneli', (req, res) => {
 
         get totalSupplierEarnings() {
           return this.myCars.filter(c => c.available).reduce((acc, c) => acc + (c.supplierPrice || 0), 0);
-        },
-
-        get averageDaysInSystem() {
-          if (this.myCars.length === 0) return 0;
-          const now = new Date();
-          const totalDays = this.myCars.reduce((acc, c) => {
-            const created = new Date(c.createdAt);
-            const diffTime = Math.abs(now - created);
-            return acc + Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          }, 0);
-          return Math.round(totalDays / this.myCars.length);
         },
 
         updateCountryData(val) {
