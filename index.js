@@ -96,7 +96,7 @@ app.post('/api/cars', async (req, res) => {
     });
 
     await newCar.save();
-    res.status(201).json({ message: 'Araç başarıyla sisteme eklendi!', car: newCar });
+    res.status(201).json({ message: 'Araç başarıyla yayına alındı!', car: newCar });
   } catch (err) {
     res.status(400).json({ error: 'Kayıt sırasında hata oluştu', details: err.message });
   }
@@ -114,14 +114,14 @@ app.patch('/api/cars/:id/status', async (req, res) => {
   }
 });
 
-// YENİ: ADMIN İÇİN ARAÇ SİSTEMDEN TAMAMEN SİLME ENDPOINT'İ
+// ARAÇ SİLME ENDPOINT'İ
 app.delete('/api/cars/:id', async (req, res) => {
   try {
     const deletedCar = await Car.findByIdAndDelete(req.params.id);
     if (!deletedCar) return res.status(404).json({ error: 'Araç bulunamadı' });
-    res.json({ success: true, message: 'Araç sistemden kalıcı olarak silindi.' });
+    res.json({ success: true, message: 'Araç sistemden kaldırıldı.' });
   } catch (err) {
-    res.status(500).json({ error: 'Araç silinemedi' });
+    res.status(500).json({ error: 'Araç kaldırılamadı' });
   }
 });
 
@@ -149,7 +149,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (SİLME BUTONLU)
+// 4. KURUMSAL ADMIN PANELİ ("Aracı Kaldır" Butonlu)
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -204,7 +204,6 @@ app.get('/', (req, res) => {
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- SEKME 1: FİLO OPERASYONLARI (ANLIK KONTROL & SİLME) -->
     <div x-show="activeTab === 'admin'" x-transition>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
@@ -234,15 +233,16 @@ app.get('/', (req, res) => {
                 <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
               </div>
               <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-building text-indigo-400 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
-              <div class="bg-slate-950 p-2.5 rounded-xl my-3 text-xs flex justify-between items-center border border-slate-800">
-                <span class="text-slate-500">Net / Satış:</span>
-                <span class="font-bold text-emerald-400" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span>
+              
+              <div class="bg-slate-950 p-2.5 rounded-xl my-3 text-xs space-y-1 border border-slate-800">
+                <div class="flex justify-between"><span class="text-slate-500">Net / Satış:</span><span class="font-bold text-emerald-400" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Yayınlanma Tarihi:</span><span class="font-bold text-indigo-300" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
               </div>
             </div>
             
             <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
               <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-all">Durum Değiştir</button>
-              <button @click="deleteCar(car._id)" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-1.5 rounded-lg font-bold transition-all"><i class="fa-solid fa-trash-can mr-1"></i> Sistemi Kaldır</button>
+              <button @click="deleteCar(car._id)" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-1.5 rounded-lg font-bold transition-all"><i class="fa-solid fa-trash-can mr-1"></i> Aracı Kaldır</button>
             </div>
           </div>
         </template>
@@ -336,12 +336,12 @@ app.get('/', (req, res) => {
           await this.fetchCars();
         },
         async deleteCar(id) {
-          if (confirm('Bu aracı sistemden kalıcı olarak silmek istediğinize emin misiniz?')) {
+          if (confirm('Bu aracı sistemden kaldırmak istediğinize emin misiniz?')) {
             const res = await fetch('/api/cars/' + id, { method: 'DELETE' });
             if (res.ok) {
               await this.fetchCars();
             } else {
-              alert('Araç silinemedi.');
+              alert('Araç kaldırılamadı.');
             }
           }
         },
@@ -387,7 +387,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI
+// 5. TEDARİKÇİ PORTALI (Yayınlanma Tarihi Gösteren Sürüm)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -482,7 +482,7 @@ app.get('/tedarikci-paneli', (req, res) => {
                   <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-1 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
                 <div class="bg-slate-950 p-3 rounded-xl my-3 text-xs space-y-1.5 border border-slate-800/80">
-                  <div class="flex justify-between"><span class="text-slate-500">Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500">Yayınlanma Tarihi:</span><span class="font-bold text-indigo-300" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
                   <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazanç:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
                 </div>
               </div>
@@ -697,7 +697,7 @@ app.get('/tedarikci-paneli', (req, res) => {
 
             const res = await fetch('/api/cars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {
-              this.isError = false; this.message = 'Aracınız başarıyla filonuza eklendi!';
+              this.isError = false; this.message = 'Aracınız başarıyla yayına alındı!';
               await this.fetchCars(); this.activeTab = 'cars';
               setTimeout(() => { this.message = ''; }, 3000); 
             } else { 
