@@ -37,7 +37,7 @@ const CarSchema = new mongoose.Schema({
 
 const Car = mongoose.model('Car', CarSchema);
 
-// 3. API Rotaları (Filo & Otomasyon)
+// 3. API Rotaları
 app.get('/api/cars', async (req, res) => {
   try {
     const cars = await Car.find().sort({ createdAt: -1 });
@@ -76,7 +76,6 @@ app.post('/api/cars', async (req, res) => {
   }
 });
 
-// Manuel Durum Değiştirme
 app.patch('/api/cars/:id/status', async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
@@ -89,27 +88,25 @@ app.patch('/api/cars/:id/status', async (req, res) => {
   }
 });
 
-// OTOMASYON 1: Dış Sistemden / Stay'den Rezervasyon Geldiğinde Aracı Kapat (Kiraya Ver)
 app.patch('/api/cars/:id/rent', async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Araç bulunamadı' });
-    car.available = false; // Otomatik kirada yap
+    car.available = false;
     await car.save();
-    res.json({ success: true, message: 'Araç başarıyla rezerve edildi ve kilitlendi.', car });
+    res.json({ success: true, message: 'Araç kilitlendi.', car });
   } catch (err) {
-    res.status(500).json({ error: 'Rezervasyon işlenemedi' });
+    res.status(500).json({ error: 'İşlem başarısız' });
   }
 });
 
-// OTOMASYON 2: Rezervasyon Bittiğinde Aracı Tekrar Müsait Yap
 app.patch('/api/cars/:id/release', async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Araç bulunamadı' });
-    car.available = true; // Tekrar müsait yap
+    car.available = true;
     await car.save();
-    res.json({ success: true, message: 'Araç tekrar müsait konuma getirildi.', car });
+    res.json({ success: true, message: 'Araç müsait.', car });
   } catch (err) {
     res.status(500).json({ error: 'İşlem başarısız' });
   }
@@ -166,116 +163,39 @@ app.get('/', (req, res) => {
   </header>
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 shadow-xl flex items-center space-x-4">
-        <div class="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30 flex-shrink-0">EE</div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sabit Komisyon</p><h3 class="text-3xl font-black mt-1 text-cyan-400">%20</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-percent"></i></div></div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-sm flex justify-between items-center overflow-hidden">
         <div>
-          <div class="flex items-center space-x-2">
-            <h2 class="text-lg font-extrabold text-white">Eren Evren Barış</h2>
-            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Super Admin</span>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Kâr</p>
+          <div class="flex flex-col space-y-1">
+            <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-rose-400 leading-none" x-text="val + ' ' + cur"></span></template>
+            <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-500">0</span>
           </div>
-          <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-shield-cat mr-1 text-indigo-400"></i> Global Broker & Fleet Manager</p>
         </div>
-      </div>
-
-      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-center">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> Partner Kayıt Linki (WhatsApp Davet)</span>
-          <span class="text-[10px] text-slate-500">Tedarikçilere bu linki ileterek filo eklemelerini sağlayın</span>
-        </div>
-        <div class="flex space-x-2">
-          <input type="text" readonly :value="windowOrigin + '/tedarikci-paneli'" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-indigo-300 font-mono focus:outline-none">
-          <button @click="navigator.clipboard.writeText(windowOrigin + '/tedarikci-paneli'); alert('Kayıt linki panoya kopyalandı!')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all whitespace-nowrap shadow-lg flex items-center">
-            <i class="fa-regular fa-copy mr-1.5"></i> Linki Kopyala
-          </button>
-        </div>
+        <div class="text-rose-400 text-3xl opacity-50"><i class="fa-solid fa-wallet"></i></div>
       </div>
     </div>
 
-    <!-- SEKME 1: FİLO OPERASYONLARI -->
-    <div x-show="activeTab === 'admin'" x-transition>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sabit Komisyon</p><h3 class="text-3xl font-black mt-1 text-cyan-400">%20</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-percent"></i></div></div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-sm flex justify-between items-center overflow-hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <template x-for="car in cars" :key="car._id">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Kâr</p>
-            <div class="flex flex-col space-y-1">
-              <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-rose-400 leading-none" x-text="val + ' ' + cur"></span></template>
-              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-500">0</span>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
+              <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
             </div>
+            <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
           </div>
-          <div class="text-rose-400 text-3xl opacity-50"><i class="fa-solid fa-wallet"></i></div>
+          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
+            <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
+          </div>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <template x-for="car in cars" :key="car._id">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
-                <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
-              </div>
-              <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-              <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
-              <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
-            </div>
-          </div>
-        </template>
-      </div>
+      </template>
     </div>
-
-    <!-- SEKME 2: TEDARİKÇİ AĞI -->
-    <div x-show="activeTab === 'partners'" x-cloak x-transition>
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-xl font-extrabold text-white"><i class="fa-solid fa-building-shield text-indigo-400 mr-2"></i> Sistemdeki Kayıtlı Tedarikçi Firmalar</h2>
-          <p class="text-xs text-slate-400 mt-1">Sisteme kayıt olan tüm iş ortaklarınızın künyesi</p>
-        </div>
-        <div class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-4 py-2 rounded-xl text-xs font-bold">
-          Toplam Partner: <span class="text-white font-black" x-text="uniqueSuppliers.length">0</span> Firma
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <template x-for="supplier in uniqueSuppliers" :key="supplier.name">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-indigo-500/40 transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex items-center space-x-3">
-                  <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-black text-xl border border-indigo-500/30">
-                    <i class="fa-solid fa-warehouse"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-base font-extrabold text-white" x-text="supplier.name"></h3>
-                    <p class="text-xs text-indigo-400 font-semibold" x-text="getFlag(supplier.country) + ' ' + supplier.country"></p>
-                  </div>
-                </div>
-                <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold" x-text="supplier.carCount + ' Araç'"></span>
-              </div>
-
-              <div class="bg-slate-950 p-4 rounded-xl space-y-2 text-xs border border-slate-800/80 mb-4">
-                <div class="flex justify-between"><span class="text-slate-500">Yetkili GSM:</span><span class="font-mono text-emerald-400 font-bold" x-text="supplier.contact"></span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Lokasyon:</span><span class="font-bold text-slate-200" x-text="supplier.airports"></span></div>
-              </div>
-            </div>
-
-            <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-              <span class="text-slate-500">Günlük Ciro Katkısı:</span>
-              <template x-for="(val, cur) in supplier.profits" :key="cur">
-                <span class="font-black text-emerald-400 text-sm" x-text="'+' + val + ' ' + cur"></span>
-              </template>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-
   </main>
 
   <script>
@@ -283,7 +203,6 @@ app.get('/', (req, res) => {
       Alpine.data('adminApp', () => ({
         activeTab: 'admin',
         cars: [],
-        windowOrigin: window.location.origin,
         async init() { await this.fetchCars(); },
         async fetchCars() {
           const res = await fetch('/api/cars');
@@ -300,27 +219,6 @@ app.get('/', (req, res) => {
             totals[cur] = (totals[cur] || 0) + (c.customerPrice - c.supplierPrice);
           });
           return totals;
-        },
-        getFlag(country) {
-          const flags = { 'Karadağ': '🇲🇪', 'Türkiye': '🇹🇷', 'Sırbistan': '🇷🇸', 'Arnavutluk': '🇦🇱', 'Bosna Hersek': '🇧🇦' };
-          return flags[country] || '🏳️';
-        },
-        get uniqueSuppliers() {
-          const map = new Map();
-          this.cars.forEach(c => {
-            if (!c.supplierName) return;
-            const key = c.supplierName.trim().toLowerCase();
-            if (!map.has(key)) { 
-              map.set(key, { name: c.supplierName.trim(), contact: c.supplierContact, country: c.country || '-', airports: c.airports || '-', carCount: 0, profits: {} }); 
-            }
-            const s = map.get(key);
-            s.carCount++;
-            if (c.available) {
-              const cur = c.currency || '€';
-              s.profits[cur] = (s.profits[cur] || 0) + (c.customerPrice - c.supplierPrice);
-            }
-          });
-          return Array.from(map.values());
         }
       }));
     });
@@ -330,7 +228,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Otomatik API / Webhook Senkronizasyonlu)
+// 5. TEDARİKÇİ PORTALI (Logoya/İsme Tıklayınca Ana Menüye Dönüş Özellikli)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -359,10 +257,14 @@ app.get('/tedarikci-paneli', (req, res) => {
 
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="bg-emerald-600 text-white p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/30"><i class="fa-solid fa-handshake"></i></div>
+      
+      <!-- SOL ÜST LOGO / ARAÇ SEMBOLÜ & İSİM (Tıklayınca Ana Menüye / Araçlarım'a Döner) -->
+      <div @click="activeTab = 'cars'" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüye Dön">
+        <div class="bg-emerald-600 text-white p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-car-side"></i>
+        </div>
         <div>
-          <span class="text-xl font-extrabold tracking-tight text-white">FlexiDrive</span> 
+          <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-emerald-400 transition-colors">FlexiDrive</span> 
           <span class="text-[10px] text-emerald-400 ml-1 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest">Tedarikçi Portalı</span>
         </div>
       </div>
@@ -406,12 +308,13 @@ app.get('/tedarikci-paneli', (req, res) => {
 
     <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
       
-      <div class="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center">
+      <!-- ÜST ŞİRKET KARTI (Buna da tıklayınca ana menüye döner) -->
+      <div @click="activeTab = 'cars'" class="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-emerald-500/50 transition-all">
         <div class="flex items-center space-x-4 mb-4 md:mb-0">
           <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg"><i class="fa-solid fa-car-side"></i></div>
           <div>
             <h2 class="text-xl font-extrabold text-white" x-text="companyName"></h2>
-            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Otomatik Webhook / API Senkronize Aktif</p>
+            <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Aktif Tedarikçi Operasyon Paneli (Ana Menüye Dön)</p>
           </div>
         </div>
         <div class="flex space-x-4 bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-xs text-center">
@@ -441,16 +344,19 @@ app.get('/tedarikci-paneli', (req, res) => {
                   <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-1 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
                 <div class="bg-slate-950 p-3 rounded-xl my-3 text-xs space-y-1.5 border border-slate-800/80">
-                  <div class="flex justify-between"><span class="text-slate-500 font-mono">Araç ID:</span><span class="font-mono text-indigo-400 font-bold" x-text="car._id"></span></div>
+                  <div class="flex justify-between"><span class="text-slate-500">Kayıt Tarihi:</span><span class="font-bold text-slate-300" x-text="new Date(car.createdAt).toLocaleDateString('tr-TR')"></span></div>
                   <div class="flex justify-between"><span class="text-slate-500">Günlük Net Kazanç:</span><span class="font-black text-emerald-400" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
                 </div>
               </div>
               <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                <span class="text-slate-500">API Webhook Bağlı</span>
+                <span class="text-slate-500">Yıl: <strong class="text-white" x-text="car.year"></strong></span>
                 <button @click="toggleMyCarStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-all">Durum Değiştir</button>
               </div>
             </div>
           </template>
+          <div x-show="myCars.length === 0" class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl text-slate-500">
+            Bu firma adına kayıtlı araç bulunamadı. Lütfen yeni araç ekleyin.
+          </div>
         </div>
       </div>
 
@@ -480,8 +386,12 @@ app.get('/tedarikci-paneli', (req, res) => {
             <span class="text-white font-black text-sm" x-text="myCars.length + ' Araç'"></span>
           </div>
           <div class="flex justify-between items-center pb-4 border-b border-slate-800 text-xs">
-            <span class="text-slate-400 font-bold">Otomasyon Durumu</span>
-            <span class="text-emerald-400 font-black text-sm">Aktif Webhook Dinleniyor</span>
+            <span class="text-slate-400 font-bold">Ortalama Araç Kalış Süresi (Sistemde)</span>
+            <span class="text-emerald-400 font-black text-sm" x-text="averageDaysInSystem + ' Gün'"></span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-400 font-bold">Operasyonel Durum</span>
+            <span class="text-emerald-400 font-black bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Sorunsuz & Aktif</span>
           </div>
         </div>
       </div>
@@ -669,6 +579,17 @@ app.get('/tedarikci-paneli', (req, res) => {
 
         get totalSupplierEarnings() {
           return this.myCars.filter(c => c.available).reduce((acc, c) => acc + (c.supplierPrice || 0), 0);
+        },
+
+        get averageDaysInSystem() {
+          if (this.myCars.length === 0) return 0;
+          const now = new Date();
+          const totalDays = this.myCars.reduce((acc, c) => {
+            const created = new Date(c.createdAt);
+            const diffTime = Math.abs(now - created);
+            return acc + Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          }, 0);
+          return Math.round(totalDays / this.myCars.length);
         },
 
         updateCountryData(val) {
