@@ -147,7 +147,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Derinleştirilmiş Arka Plan & Net Tipografi)
+// 4. KURUMSAL ADMIN PANELİ
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #e5e2dc;">
@@ -380,7 +380,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Derinleştirilmiş Arka Plan & Net Tipografi)
+// 5. TEDARİKÇİ PORTALI (Kilitli & Seviye Bazlı Sadakat Primi Modüllü Sürüm)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #e5e2dc;">
@@ -426,6 +426,7 @@ app.get('/tedarikci-paneli', (req, res) => {
       <div class="flex items-center space-x-2" x-show="isLoggedIn">
         <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'bg-stone-900 text-white shadow' : 'text-stone-700 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-car mr-1.5"></i> Araçlarım</button>
         <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'bg-stone-900 text-white shadow' : 'text-stone-700 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-wallet mr-1.5"></i> Hesap Özeti</button>
+        <button @click="activeTab = 'loyalty'" :class="activeTab === 'loyalty' ? 'bg-stone-900 text-white shadow' : 'text-stone-700 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-award mr-1.5"></i> Sadakat Primi</button>
         <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'bg-stone-900 text-white shadow' : 'text-stone-700 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-chart-line mr-1.5"></i> İstatistikler</button>
         <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'bg-stone-900 text-white shadow' : 'text-stone-700 hover:bg-stone-100'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center border gold-border"><i class="fa-solid fa-plus-circle mr-1.5"></i> Yeni Araç Ekle</button>
         <button @click="logout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-xl text-xs transition-all ml-2 border border-rose-200" title="Çıkış Yap"><i class="fa-solid fa-right-from-bracket text-base"></i></button>
@@ -506,6 +507,37 @@ app.get('/tedarikci-paneli', (req, res) => {
             <span class="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-2">İş Modeli</span>
             <div class="text-xl font-extrabold text-stone-900">Global B2B Dağıtım Sözleşmesi</div>
             <p class="text-xs font-semibold text-stone-600 mt-2">FlexiDrive uluslararası havalimanı ve broker dağıtım anlaşması kapsamındadır.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SADAKAT PRİMİ SEVİYE & KİLİT EKRANI -->
+      <div x-show="activeTab === 'loyalty'" x-cloak x-transition>
+        <h3 class="text-lg font-extrabold text-stone-900 mb-6"><i class="fa-solid fa-award text-amber-700 mr-2"></i> VIP Sadakat Primi & Seviye Durumu</h3>
+        
+        <div class="bg-white border gold-border rounded-3xl p-8 shadow-sm relative overflow-hidden">
+          <div class="flex items-center space-x-4 mb-6 pb-4 border-b border-stone-200">
+            <div class="w-16 h-16 rounded-2xl gold-btn flex items-center justify-center text-3xl shadow"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <h4 class="text-xl font-black text-stone-900">FlexiDrive İş Ortaklığı Kademesi</h4>
+              <p class="text-xs font-semibold text-stone-600">Sistemdeki kıdeminize ve operasyonel sadakatinize göre özel prim kazanma modülü.</p>
+            </div>
+          </div>
+
+          <!-- KİLİTLİ DURUM KARTI -->
+          <div class="bg-stone-50 border border-stone-300 rounded-2xl p-6 text-center space-y-4">
+            <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center text-xl mx-auto border border-amber-300 shadow-inner">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+              <h5 class="text-base font-black text-stone-900">Sadakat Primi Modülü Şu An Kilitli</h5>
+              <p class="text-xs font-semibold text-stone-600 mt-1 max-w-lg mx-auto">
+                VIP Sadakat Primi ve ek ciro desteklerinden yararlanabilmeniz için sistemimizde en az <strong class="text-amber-800">3 ay kesintisiz</strong> aktif iş ortaklığı yürütmeniz gerekmektedir.
+              </p>
+            </div>
+            <div class="inline-block bg-amber-50 border border-amber-300 text-amber-900 px-4 py-2 rounded-xl text-xs font-extrabold">
+              <i class="fa-regular fa-clock mr-1.5"></i> Kilit Açılma Süreci: Aktif İş Ortaklığı Devam Ediyor
+            </div>
           </div>
         </div>
       </div>
@@ -717,5 +749,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive lüks VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive seviye bazlı sadakat modüllü VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
