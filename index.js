@@ -112,7 +112,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ
+// 4. KURUMSAL ADMIN PANELİ (Ülke Bazlı Gruplanmış Tedarikçi Ağı)
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -153,7 +153,7 @@ app.get('/', (req, res) => {
           <i class="fa-solid fa-car mr-2"></i> Filo Operasyonları
         </button>
         <button @click="activeTab = 'partners'" :class="activeTab === 'partners' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'" class="px-5 py-2 rounded-xl font-semibold text-sm transition-all flex items-center">
-          <i class="fa-solid fa-handshake mr-2"></i> Tedarikçi Ağı (Firmalar)
+          <i class="fa-solid fa-handshake mr-2"></i> Tedarikçi Ağı (Ülke Bazlı)
         </button>
         <a href="/tedarikci-paneli" target="_blank" class="text-emerald-400 hover:bg-emerald-500/10 px-4 py-2 rounded-xl font-semibold text-sm transition-all border border-emerald-500/30 flex items-center">
           <i class="fa-solid fa-external-link-alt mr-2"></i> Tedarikçi Portalı <span class="text-[9px] ml-2 bg-emerald-500/20 px-1.5 py-0.5 rounded uppercase">Harici</span>
@@ -163,39 +163,133 @@ app.get('/', (req, res) => {
   </header>
 
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sabit Komisyon</p><h3 class="text-3xl font-black mt-1 text-cyan-400">%20</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-percent"></i></div></div>
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-sm flex justify-between items-center overflow-hidden">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 shadow-xl flex items-center space-x-4">
+        <div class="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30 flex-shrink-0">EE</div>
         <div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Kâr</p>
-          <div class="flex flex-col space-y-1">
-            <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-rose-400 leading-none" x-text="val + ' ' + cur"></span></template>
-            <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-500">0</span>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-lg font-extrabold text-white">Eren Evren Barış</h2>
+            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Super Admin</span>
           </div>
+          <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-shield-cat mr-1 text-indigo-400"></i> Global Broker & Fleet Manager</p>
         </div>
-        <div class="text-rose-400 text-3xl opacity-50"><i class="fa-solid fa-wallet"></i></div>
+      </div>
+
+      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-center">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-qrcode mr-1"></i> Partner Kayıt Linki (WhatsApp Davet)</span>
+          <span class="text-[10px] text-slate-500">Tedarikçilere bu linki ileterek filo eklemelerini sağlayın</span>
+        </div>
+        <div class="flex space-x-2">
+          <input type="text" readonly :value="windowOrigin + '/tedarikci-paneli'" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-indigo-300 font-mono focus:outline-none">
+          <button @click="navigator.clipboard.writeText(windowOrigin + '/tedarikci-paneli'); alert('Kayıt linki panoya kopyalandı!')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all whitespace-nowrap shadow-lg flex items-center">
+            <i class="fa-regular fa-copy mr-1.5"></i> Linki Kopyala
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <template x-for="car in cars" :key="car._id">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+    <!-- SEKME 1: FİLO OPERASYONLARI -->
+    <div x-show="activeTab === 'admin'" x-transition>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-indigo-400 text-3xl opacity-50"><i class="fa-solid fa-car"></i></div></div>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif / Müsait</p><h3 class="text-3xl font-black mt-1 text-emerald-400" x-text="cars.filter(c => c.available).length">0</h3></div><div class="text-emerald-400 text-3xl opacity-50"><i class="fa-solid fa-circle-check"></i></div></div>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sabit Komisyon</p><h3 class="text-3xl font-black mt-1 text-cyan-400">%20</h3></div><div class="text-cyan-400 text-3xl opacity-50"><i class="fa-solid fa-percent"></i></div></div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-sm flex justify-between items-center overflow-hidden">
           <div>
-            <div class="flex justify-between items-start mb-2">
-              <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
-              <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Günlük Potansiyel Kâr</p>
+            <div class="flex flex-col space-y-1">
+              <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-rose-400 leading-none" x-text="val + ' ' + cur"></span></template>
+              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-slate-500">0</span>
             </div>
-            <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
           </div>
-          <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-            <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
-            <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
-          </div>
+          <div class="text-rose-400 text-3xl opacity-50"><i class="fa-solid fa-wallet"></i></div>
         </div>
-      </template>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <template x-for="car in cars" :key="car._id">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-base font-bold text-white" x-text="car.brand + ' ' + car.model"></h4>
+                <span :class="car.available ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'" class="px-2 py-0.5 rounded text-[10px] font-black" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
+              </div>
+              <p class="text-xs text-slate-400" x-text="'Tedarikçi: ' + car.supplierName"></p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+              <span class="text-slate-500 font-mono">ID: <span class="text-indigo-400" x-text="car._id"></span></span>
+              <button @click="toggleStatus(car._id)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded font-bold">Durum Değiştir</button>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
+
+    <!-- SEKME 2: TEDARİKÇİ AĞI (ÜLKE BAZLI TEKDE TOPLANMIŞ GRUPLAR) -->
+    <div x-show="activeTab === 'partners'" x-cloak x-transition>
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-extrabold text-white"><i class="fa-solid fa-earth-europe text-indigo-400 mr-2"></i> Ülke Bazlı Tedarikçi Hacim Raporu</h2>
+          <p class="text-xs text-slate-400 mt-1">Ülkelere tıklayarak o bölgedeki tedarikçi firmalarınızı ve hacimlerini detaylı inceleyin</p>
+        </div>
+        <div class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-4 py-2 rounded-xl text-xs font-bold">
+          Aktif Ülke Sayısı: <span class="text-white font-black" x-text="groupedSuppliersByCountry.length">0</span> Bölge
+        </div>
+      </div>
+
+      <!-- ÜLKE KARTLARI LİSTESİ -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <template x-for="group in groupedSuppliersByCountry" :key="group.country">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl hover:border-indigo-500/40 transition-all flex flex-col justify-between">
+            <div>
+              <!-- Ülke Başlık / Özet Alanı -->
+              <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                  <div class="text-4xl" x-text="group.flag"></div>
+                  <div>
+                    <h3 class="text-xl font-black text-white" x-text="group.country"></h3>
+                    <p class="text-xs text-slate-400">Toplam <strong class="text-indigo-400" x-text="group.suppliers.length"></strong> Tedarikçi Firma / <strong class="text-emerald-400" x-text="group.totalCars"></strong> Araç Hacmi</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Bölgesel Günlük Ciro</span>
+                  <template x-for="(val, cur) in group.totalProfits" :key="cur">
+                    <span class="text-lg font-black text-emerald-400" x-text="'+' + val + ' ' + cur"></span>
+                  </template>
+                </div>
+              </div>
+
+              <!-- O Ülkedeki Firmaların Listesi -->
+              <div class="space-y-3">
+                <template x-for="supplier in group.suppliers" :key="supplier.name">
+                  <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex justify-between items-center">
+                    <div>
+                      <div class="flex items-center space-x-2">
+                        <h4 class="text-sm font-bold text-white" x-text="supplier.name"></h4>
+                        <span class="bg-indigo-500/10 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded-full" x-text="supplier.carCount + ' Araç'"></span>
+                      </div>
+                      <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> <span class="font-mono" x-text="supplier.contact"></span> | <i class="fa-solid fa-location-dot text-indigo-400 ml-2 mr-1"></i> <span x-text="supplier.airports"></span></p>
+                    </div>
+                    <div class="text-right">
+                      <template x-for="(val, cur) in supplier.profits" :key="cur">
+                        <span class="text-xs font-black text-emerald-400" x-text="'+' + val + ' ' + cur"></span>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </template>
+        
+        <div x-show="groupedSuppliersByCountry.length === 0" class="col-span-2 text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl text-slate-500">
+          Sisteme kayıtlı herhangi bir tedarikçi veya araç bulunmuyor.
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -203,6 +297,7 @@ app.get('/', (req, res) => {
       Alpine.data('adminApp', () => ({
         activeTab: 'admin',
         cars: [],
+        windowOrigin: window.location.origin,
         async init() { await this.fetchCars(); },
         async fetchCars() {
           const res = await fetch('/api/cars');
@@ -219,6 +314,69 @@ app.get('/', (req, res) => {
             totals[cur] = (totals[cur] || 0) + (c.customerPrice - c.supplierPrice);
           });
           return totals;
+        },
+        getFlag(country) {
+          const flags = { 'Karadağ': '🇲🇪', 'Türkiye': '🇹🇷', 'Sırbistan': '🇷🇸', 'Arnavutluk': '🇦🇱', 'Bosna Hersek': '🇧🇦', 'Almanya': '🇩🇪', 'İngiltere': '🇬🇧', 'Amerika': '🇺🇸' };
+          return flags[country] || '🏳️';
+        },
+        // Ülkelere göre gruplandıran ve hacim hesaplayan akıllı yapı
+        get groupedSuppliersByCountry() {
+          const countryMap = new Map();
+
+          this.cars.forEach(c => {
+            if (!c.supplierName || !c.country) return;
+            const countryKey = c.country.trim();
+            
+            if (!countryMap.has(countryKey)) {
+              countryMap.set(countryKey, {
+                country: countryKey,
+                flag: this.getFlag(countryKey),
+                suppliersMap: new Map(),
+                totalCars: 0,
+                totalProfits: {}
+              });
+            }
+
+            const countryGroup = countryMap.get(countryKey);
+            countryGroup.totalCars++;
+
+            if (c.available) {
+              const cur = c.currency || '€';
+              countryGroup.totalProfits[cur] = (countryGroup.totalProfits[cur] || 0) + (c.customerPrice - c.supplierPrice);
+            }
+
+            const supKey = c.supplierName.trim().toLowerCase();
+            if (!countryGroup.suppliersMap.has(supKey)) {
+              countryGroup.suppliersMap.set(supKey, {
+                name: c.supplierName.trim(),
+                contact: c.supplierContact,
+                airports: c.airports || '-',
+                carCount: 0,
+                profits: {}
+              });
+            }
+
+            const supObj = countryGroup.suppliersMap.get(supKey);
+            supObj.carCount++;
+            if (c.available) {
+              const cur = c.currency || '€';
+              supObj.profits[cur] = (supObj.profits[cur] || 0) + (c.customerPrice - c.supplierPrice);
+            }
+          });
+
+          // Map yapılarını Array e dönüştür
+          const result = [];
+          countryMap.forEach((group) => {
+            result.push({
+              country: group.country,
+              flag: group.flag,
+              totalCars: group.totalCars,
+              totalProfits: group.totalProfits,
+              suppliers: Array.from(group.suppliersMap.values())
+            });
+          });
+
+          return result;
         }
       }));
     });
@@ -228,7 +386,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Logoya/İsme Tıklayınca Ana Menüye Dönüş Özellikli)
+// 5. TEDARİKÇİ PORTALI
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-950">
@@ -258,7 +416,6 @@ app.get('/tedarikci-paneli', (req, res) => {
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       
-      <!-- SOL ÜST LOGO / ARAÇ SEMBOLÜ & İSİM (Tıklayınca Ana Menüye / Araçlarım'a Döner) -->
       <div @click="activeTab = 'cars'" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüye Dön">
         <div class="bg-emerald-600 text-white p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform">
           <i class="fa-solid fa-car-side"></i>
@@ -308,7 +465,6 @@ app.get('/tedarikci-paneli', (req, res) => {
 
     <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
       
-      <!-- ÜST ŞİRKET KARTI (Buna da tıklayınca ana menüye döner) -->
       <div @click="activeTab = 'cars'" class="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-emerald-500/50 transition-all">
         <div class="flex items-center space-x-4 mb-4 md:mb-0">
           <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg"><i class="fa-solid fa-car-side"></i></div>
