@@ -147,7 +147,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Şampanya Arka Plan & Altın Sarısı VIP Detaylar)
+// 4. KURUMSAL ADMIN PANELİ
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #f4f2ee;">
@@ -166,14 +166,11 @@ app.get('/', (req, res) => {
     .gold-badge { background-color: rgba(251, 191, 36, 0.15); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
     .gold-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; }
     .gold-btn:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 1rem center;
-      background-size: 1em;
+    .car-card-bg {
+      background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.96)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80');
+      background-size: cover;
+      background-position: center;
     }
-    select::-ms-expand { display: none; }
   </style>
 </head>
 <body class="h-full flex flex-col" x-data="adminApp()">
@@ -217,7 +214,7 @@ app.get('/', (req, res) => {
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Günlük Potansiyel Ciro</p>
             <div class="flex flex-col space-y-1">
               <template x-for="(val, cur) in totalProfits" :key="cur"><span class="text-lg font-black text-amber-700 leading-none" x-text="val + ' ' + cur"></span></template>
-              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-stone-400">0</span>
+              <span x-show="Object.keys(totalProfits).length === 0" class="text-lg font-black text-stone-400">0 €</span>
             </div>
           </div>
           <div class="text-amber-600 text-3xl"><i class="fa-solid fa-wallet"></i></div>
@@ -226,7 +223,7 @@ app.get('/', (req, res) => {
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <template x-for="car in cars" :key="car._id">
-          <div class="bg-white border gold-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+          <div class="car-card-bg border gold-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <div class="flex justify-between items-start mb-3">
                 <div>
@@ -235,16 +232,16 @@ app.get('/', (req, res) => {
                 </div>
                 <span :class="car.available ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'" class="px-2.5 py-1 rounded-lg text-[10px] font-black border" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
               </div>
-              <p class="text-xs text-stone-500 mt-1"><i class="fa-solid fa-building text-amber-600 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
+              <p class="text-xs text-stone-600 mt-1"><i class="fa-solid fa-building text-amber-600 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
               
-              <div class="bg-stone-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200">
-                <div class="flex justify-between"><span class="text-stone-500">Net / Satış:</span><span class="font-bold text-amber-700" x-text="car.supplierPrice + '€ / ' + car.customerPrice + '€'"></span></div>
+              <div class="bg-white/80 backdrop-blur-sm p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200 shadow-inner">
+                <div class="flex justify-between"><span class="text-stone-500">Net / Satış:</span><span class="font-bold text-amber-700" x-text="(car.supplierPrice || 0) + '€ / ' + (car.customerPrice || 0) + '€'"></span></div>
                 <div class="flex justify-between"><span class="text-stone-500">Yayınlanma:</span><span class="font-bold text-stone-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
               </div>
             </div>
             
-            <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-xs">
-              <button @click="toggleStatus(car._id)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
+            <div class="pt-4 border-t border-stone-200/60 flex justify-between items-center text-xs">
+              <button @click="toggleStatus(car._id)" class="bg-stone-200 hover:bg-stone-300 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
               <button @click="deleteCar(car._id)" class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 px-3 py-2 rounded-xl font-bold transition-all"><i class="fa-solid fa-trash-can mr-1"></i> Aracı Kaldır</button>
             </div>
           </div>
@@ -345,7 +342,7 @@ app.get('/', (req, res) => {
           const totals = {};
           this.cars.filter(c => c.available).forEach(c => {
             const cur = c.currency || '€';
-            totals[cur] = (totals[cur] || 0) + (c.customerPrice - c.supplierPrice);
+            totals[cur] = (totals[cur] || 0) + ((c.customerPrice || 0) - (c.supplierPrice || 0));
           });
           return totals;
         },
@@ -383,7 +380,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Şampanya Arka Plan & Altın Sarısı VIP Detaylar)
+// 5. TEDARİKÇİ PORTALI (Kilometre Alanı Kaldırılmış Sürüm)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #f4f2ee;">
@@ -402,6 +399,11 @@ app.get('/tedarikci-paneli', (req, res) => {
     .gold-badge { background-color: rgba(251, 191, 36, 0.15); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
     .gold-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; }
     .gold-btn:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+    .car-card-bg {
+      background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.96)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80');
+      background-size: cover;
+      background-position: center;
+    }
     select {
       appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -468,24 +470,24 @@ app.get('/tedarikci-paneli', (req, res) => {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <template x-for="car in myCars" :key="car._id">
-            <div class="bg-white border gold-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="car-card-bg border gold-border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
               <div>
                 <div class="flex justify-between items-start mb-3">
                   <div>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded gold-badge uppercase" x-text="car.category"></span>
                     <h4 class="text-base font-extrabold text-stone-900 mt-2" x-text="car.brand + ' ' + car.model"></h4>
-                    <p class="text-xs text-stone-500 mt-1"><i class="fa-solid fa-location-dot text-amber-600 mr-1"></i> <span x-text="car.country + ' / ' + car.airports"></span></p>
+                    <p class="text-xs text-stone-600 mt-1"><i class="fa-solid fa-location-dot text-amber-600 mr-1"></i> <span x-text="car.country + ' / ' + car.airports"></span></p>
                   </div>
                   <span :class="car.available ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'" class="px-2.5 py-1 rounded-lg text-[10px] font-black border" x-text="car.available ? 'MÜSAİT' : 'KİRADA'"></span>
                 </div>
-                <div class="bg-stone-50 p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200">
+                <div class="bg-white/80 backdrop-blur-sm p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-200 shadow-inner">
                   <div class="flex justify-between"><span class="text-stone-500">Yayınlanma Tarihi:</span><span class="font-bold text-stone-700" x-text="new Date(car.createdAt).toLocaleString('tr-TR')"></span></div>
-                  <div class="flex justify-between"><span class="text-stone-500">Günlük Net Kazanç:</span><span class="font-black text-amber-700" x-text="car.supplierPrice + ' ' + car.currency"></span></div>
+                  <div class="flex justify-between"><span class="text-stone-500">Günlük Net Kazanç:</span><span class="font-black text-amber-700" x-text="(car.supplierPrice || 0) + ' ' + car.currency"></span></div>
                 </div>
               </div>
-              <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-xs">
-                <span class="text-stone-400">Yıl: <strong class="text-stone-800" x-text="car.year"></strong></span>
-                <button @click="toggleMyCarStatus(car._id)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
+              <div class="pt-4 border-t border-stone-200/60 flex justify-between items-center text-xs">
+                <span class="text-stone-500">Yıl: <strong class="text-stone-800" x-text="car.year"></strong></span>
+                <button @click="toggleMyCarStatus(car._id)" class="bg-stone-200 hover:bg-stone-300 text-stone-800 px-3 py-2 rounded-xl font-bold transition-all">Durum Değiştir</button>
               </div>
             </div>
           </template>
@@ -524,7 +526,7 @@ app.get('/tedarikci-paneli', (req, res) => {
 
       <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-white border gold-border rounded-3xl p-8 shadow-sm relative overflow-hidden">
         <h3 class="text-xl font-black text-stone-900 mb-2"><i class="fa-solid fa-plus-circle text-amber-600 mr-2"></i> Filoya Yeni Araç Ekle</h3>
-        <p class="text-xs text-stone-500 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-stone-900" x-text="companyName"></strong> (Maksimum günlük net kazanç sınırı 400 €'dur).</p>
+        <p class="text-xs text-stone-500 mb-6">Firma adınız otomatik eşleştirilmektedir: <strong class="text-stone-900" x-text="companyName"></strong> (Günlük net kazanç maksimum 400 €'dur).</p>
         
         <form @submit.prevent="submitCar" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -567,7 +569,7 @@ app.get('/tedarikci-paneli', (req, res) => {
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Yıl</label>
                   <input type="number" x-model="form.year" required min="2000" max="2027" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold">
@@ -578,25 +580,26 @@ app.get('/tedarikci-paneli', (req, res) => {
                     <option value="Ekonomik">Ekonomik</option><option value="SUV">SUV</option><option value="Sedan">Sedan</option><option value="Lüks">Lüks</option>
                   </select>
                 </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Yakıt</label>
                   <select x-model="form.fuelType" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-2 py-3 text-stone-900 text-sm font-bold">
                     <option value="Benzin">Benzin</option><option value="Dizel">Dizel</option><option value="Hibrit">Hibrit</option><option value="Elektrik">Elektrik</option>
                   </select>
                 </div>
-              </div>
-
-              <div class="flex space-x-3">
-                <div class="w-1/3">
+                <div>
                   <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Bavul</label>
                   <input type="number" x-model="form.luggageCapacity" required min="0" max="10" placeholder="Adet" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-3 text-stone-900 text-sm font-bold">
                 </div>
-                <div class="w-2/3">
-                  <label class="block text-[10px] font-black text-amber-700 uppercase tracking-wider mb-1">Günlük Net Kazanç (Max 400 €)</label>
-                  <div class="relative">
-                    <span class="absolute left-3 top-3 text-amber-700 font-black text-base" x-text="form.currency"></span>
-                    <input type="number" x-model="form.supplierPrice" required min="1" max="400" placeholder="Max 400" class="w-full bg-stone-50 border-2 border-stone-300 rounded-xl pl-8 pr-3 py-3 text-stone-900 text-sm font-black focus:border-stone-900">
-                  </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-black text-amber-700 uppercase tracking-wider mb-1">Günlük Net Kazanç (Max 400 €)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-3 text-amber-700 font-black text-base" x-text="form.currency"></span>
+                  <input type="number" x-model="form.supplierPrice" required min="1" max="400" placeholder="Max 400" class="w-full bg-stone-50 border-2 border-stone-300 rounded-xl pl-8 pr-3 py-3 text-stone-900 text-sm font-black focus:border-stone-900">
                 </div>
               </div>
             </div>
@@ -715,5 +718,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive şampanya/altın VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive lüks şampanya VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
