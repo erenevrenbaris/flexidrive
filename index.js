@@ -149,7 +149,22 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Sol Üst Logo Menüsü ve Çoklu Dil Desteği ile)
+// Ortak Marka Logosu HTML Parçası (The Global Route İkonu)
+const brandLogoHtml = `
+  <div class="flex items-center space-x-3 cursor-pointer group" title="Ana Menü">
+    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-xl text-white shadow-lg group-hover:scale-105 transition-transform">
+      <i class="fa-solid fa-route"></i>
+    </div>
+    <div class="flex flex-col">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl font-black tracking-tight text-white">FlexiDrive</span>
+        <span class="text-[9px] font-extrabold gold-badge px-2 py-0.5 rounded-full uppercase tracking-widest">Global OS</span>
+      </div>
+    </div>
+  </div>
+`;
+
+// 4. KURUMSAL ADMIN PANELİ
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #242220;">
@@ -185,28 +200,28 @@ app.get('/', (req, res) => {
     <header class="bg-[#1c1a18] border-b gold-border sticky top-0 z-40 shadow-xl">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
-        <!-- SOL ÜST LOGO VE TIKLANINCA AÇILAN ANA MENÜ -->
+        <!-- YENİ ÖZEL LOGO VE AÇILIR MENÜ -->
         <div class="relative" x-data="{ menuOpen: false }">
-          <div @click="menuOpen = !menuOpen" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüyü Aç">
-            <div class="gold-btn p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md group-hover:scale-105 transition-transform"><i class="fa-solid fa-bars"></i></div>
+          <div @click="menuOpen = !menuOpen" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menü">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-xl text-white shadow-lg group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-route"></i>
+            </div>
             <div>
               <span class="text-2xl font-black tracking-tight text-white">FlexiDrive</span> 
               <span class="text-[9px] font-extrabold gold-badge px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">HQ</span>
             </div>
           </div>
 
-          <!-- AÇILIR ANA MENÜ PENCERESİ -->
           <div x-show="menuOpen" @click.outside="menuOpen = false" x-cloak class="absolute left-0 mt-3 w-56 bg-[#1c1a18] border gold-border rounded-2xl shadow-2xl py-2 z-50 text-xs font-bold text-stone-200">
-            <div class="px-4 py-2 border-b border-stone-800 text-[10px] text-amber-400 uppercase tracking-widest font-black">Hızlı Menü</div>
-            <a href="/" @click="activeTab = 'admin'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-car text-amber-400 mr-2.5"></i> Filo Operasyonları</a>
-            <a href="/" @click="activeTab = 'partners'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-earth-europe text-amber-400 mr-2.5"></i> Tedarikçi Ağı</a>
-            <a href="/" @click="activeTab = 'integrations'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-network-wired text-amber-400 mr-2.5"></i> Meta-Search Feed</a>
+            <div class="px-4 py-2 border-b border-stone-800 text-[10px] text-amber-400 uppercase tracking-widest font-black" x-text="t('quickMenu')">Hızlı Menü</div>
+            <a href="/" @click="activeTab = 'admin'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-car text-amber-400 mr-2.5"></i> <span x-text="t('fleet')">Filo Operasyonları</span></a>
+            <a href="/" @click="activeTab = 'partners'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-earth-europe text-amber-400 mr-2.5"></i> <span x-text="t('suppliers')">Tedarikçi Ağı</span></a>
+            <a href="/" @click="activeTab = 'integrations'; menuOpen = false" class="flex items-center px-4 py-2.5 hover:bg-stone-800 hover:text-white transition-all"><i class="fa-solid fa-network-wired text-amber-400 mr-2.5"></i> <span x-text="t('feed')">Meta-Search Feed</span></a>
             <div class="border-t border-stone-800 my-1"></div>
-            <a href="/tedarikci-paneli" target="_blank" class="flex items-center px-4 py-2.5 text-emerald-400 hover:bg-stone-800 transition-all"><i class="fa-solid fa-external-link-alt mr-2.5"></i> Tedarikçi Portalı</a>
+            <a href="/tedarikci-paneli" target="_blank" class="flex items-center px-4 py-2.5 text-emerald-400 hover:bg-stone-800 transition-all"><i class="fa-solid fa-external-link-alt mr-2.5"></i> <span x-text="t('supplierPortal')">Tedarikçi Portalı</span></a>
           </div>
         </div>
 
-        <!-- SAĞ ÜST MENÜ & DİL SEÇİCİ -->
         <div class="flex items-center space-x-3">
           <button @click="activeTab = 'admin'" :class="activeTab === 'admin' ? 'gold-btn shadow-md' : 'text-stone-400 hover:bg-stone-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all">
             <i class="fa-solid fa-car mr-1.5"></i> <span x-text="t('fleet')">Filo Operasyonları</span>
@@ -217,11 +232,11 @@ app.get('/', (req, res) => {
           <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'gold-btn shadow-md' : 'text-stone-400 hover:bg-stone-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all">
             <i class="fa-solid fa-network-wired mr-1.5"></i> <span x-text="t('feed')">Meta-Search Feed</span>
           </button>
-          
-          <!-- DİL SEÇİM DROPDOWN -->
-          <div class="relative" x-data="{ langOpen: false }">
+
+          <!-- DİL SEÇİCİ -->
+          <div class="relative ml-2" x-data="{ langOpen: false }">
             <button @click="langOpen = !langOpen" class="bg-[#242220] border gold-border text-amber-400 px-3 py-2 rounded-xl font-black text-xs flex items-center shadow">
-              <i class="fa-solid fa-globe mr-1.5"></i> <span x-text="currentLang.toUpperCase()"></span> <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+              <i class="fa-solid fa-globe mr-1.5"></i> <span x-text="currentLang.toUpperCase()"></span>
             </button>
             <div x-show="langOpen" @click.outside="langOpen = false" x-cloak class="absolute right-0 mt-2 w-36 bg-[#1c1a18] border gold-border rounded-xl shadow-2xl py-1 z-50 text-xs font-bold">
               <div @click="setLang('tr'); langOpen = false" class="px-3 py-2 hover:bg-stone-800 cursor-pointer flex items-center text-stone-200"><span class="mr-2">🇹🇷</span> Türkçe</div>
@@ -263,7 +278,7 @@ app.get('/', (req, res) => {
                   </div>
                   <span :class="car.available ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30'" class="px-2.5 py-1 rounded-lg text-[10px] font-black border" x-text="car.available ? t('available') : t('rented')"></span>
                 </div>
-                <p class="text-xs font-semibold text-stone-300 mt-1"><i class="fa-solid fa-building text-amber-400 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>)</p>
+                <p class="text-xs font-semibold text-stone-300 mt-1"><i class="fa-solid fa-building text-amber-400 mr-1"></i> <span x-text="car.supplierName"></span> (<span x-text="car.country"></span>) | Şifre: <strong class="text-amber-300 font-mono" x-text="car.supplierPassword || 'flexi2026'"></strong></p>
                 
                 <div class="bg-[#1c1a18]/80 backdrop-blur-sm p-3 rounded-2xl my-4 text-xs space-y-1.5 border border-stone-800 shadow-inner text-stone-200">
                   <div class="flex justify-between"><span class="text-stone-400 font-medium" x-text="t('netSale')">Net / Satış:</span><span class="font-extrabold text-amber-400" x-text="(car.supplierPrice || 0) + '€ / ' + (car.customerPrice || 0) + '€'"></span></div>
@@ -284,7 +299,7 @@ app.get('/', (req, res) => {
         <div class="flex items-center justify-between mb-6">
           <div>
             <h2 class="text-xl font-extrabold text-white" x-text="t('supplierReportTitle')">Ülke Bazlı Tedarikçi Hacim Raporu</h2>
-            <p class="text-xs font-semibold text-stone-400 mt-1" x-text="t('supplierReportSub')">Ülkelere göre gruplanmış tedarikçi firmalarınız ve bölgesel araç hacimleriniz</p>
+            <p class="text-xs font-semibold text-stone-400 mt-1" x-text="t('supplierReportSub')">Ülkelere göre gruplanmış tedarikçi firmalarınız</p>
           </div>
         </div>
 
@@ -345,10 +360,10 @@ app.get('/', (req, res) => {
 
   <script>
     const TRANSLATIONS = {
-      tr: { fleet: 'Filo Operasyonları', suppliers: 'Tedarikçi Ağı', feed: 'Meta-Search Feed', totalFleet: 'Toplam Filo', activeAvailable: 'Aktif / Müsait', dailyRevenue: 'Günlük Potansiyel Ciro', available: 'MÜSAİT', rented: 'KİRADA', netSale: 'Net / Satış:', published: 'Yayınlanma:', changeStatus: 'Durum Değiştir', removeCar: 'Aracı Kaldır', supplierReportTitle: 'Ülke Bazlı Tedarikçi Hacim Raporu', supplierReportSub: 'Ülkelere göre gruplanmış tedarikçi firmalarınız', metaTitle: 'Meta-Search Entegrasyon Merkezi', metaSub: 'Skyscanner ve Kayak gibi platformların envanterinizi çekeceği açık API adresi.', feedAddress: 'Resmi JSON Feed Bağlantı Adresi', copy: 'Kopyala', footer: 'Tüm Hakları Saklıdır © 2026 FlexiDrive Global OS.' },
-      en: { fleet: 'Fleet Operations', suppliers: 'Supplier Network', feed: 'Meta-Search Feed', totalFleet: 'Total Fleet', activeAvailable: 'Active / Available', dailyRevenue: 'Daily Potential Revenue', available: 'AVAILABLE', rented: 'RENTED', netSale: 'Net / Sale:', published: 'Published:', changeStatus: 'Toggle Status', removeCar: 'Remove Car', supplierReportTitle: 'Country-Based Supplier Volume Report', supplierReportSub: 'Suppliers grouped by country', metaTitle: 'Meta-Search Integration Center', metaSub: 'Open API address for Skyscanner and Kayak.', feedAddress: 'Official JSON Feed Address', copy: 'Copy', footer: 'All Rights Reserved © 2026 FlexiDrive Global OS.' },
-      de: { fleet: 'Flottenbetrieb', suppliers: 'Lieferantennetzwerk', feed: 'Meta-Search Feed', totalFleet: 'Gesamte Flotte', activeAvailable: 'Aktiv / Verfügbar', dailyRevenue: 'Ttäglicher Umsatz', available: 'VERFÜGBAR', rented: 'VERMIETET', netSale: 'Netto / Verkauf:', published: 'Veröffentlicht:', changeStatus: 'Status Ändern', removeCar: 'Fahrzeug Entfernen', supplierReportTitle: 'Länderbasieter Lieferantenbericht', supplierReportSub: 'Lieferanten nach Ländern gruppiert', metaTitle: 'Meta-Search Integrationszentrum', metaSub: 'Offene API-Adresse für Skyscanner und Kayak.', feedAddress: 'Offizielle JSON Feed Adresse', copy: 'Kopieren', footer: 'Alle Rechte vorbehalten © 2026 FlexiDrive Global OS.' },
-      it: { fleet: 'Operazioni Flotta', suppliers: 'Rete Fornitori', feed: 'Meta-Search Feed', totalFleet: 'Flotta Totale', activeAvailable: 'Attivo / Disponibile', dailyRevenue: 'Potenziale Ricavo Giornaliero', available: 'DISPONIBILE', rented: 'AFFITTATO', netSale: 'Netto / Vendita:', published: 'Pubblicato:', changeStatus: 'Cambia Stato', removeCar: 'Rimuovi Auto', supplierReportTitle: 'Rapporto Fornitori per Paese', supplierReportSub: 'Fornitori raggruppati per paese', metaTitle: 'Centro Integrazione Meta-Search', metaSub: 'Indirizzo API aperto per Skyscanner e Kayak.', feedAddress: 'Indirizzo JSON Feed Ufficiale', copy: 'Copia', footer: 'Tutti i diritti riservati © 2026 FlexiDrive Global OS.' }
+      tr: { quickMenu: 'Hızlı Menü', fleet: 'Filo Operasyonları', suppliers: 'Tedarikçi Ağı', feed: 'Meta-Search Feed', supplierPortal: 'Tedarikçi Portalı', totalFleet: 'Toplam Filo', activeAvailable: 'Aktif / Müsait', dailyRevenue: 'Günlük Potansiyel Ciro', available: 'MÜSAİT', rented: 'KİRADA', netSale: 'Net / Satış:', published: 'Yayınlanma:', changeStatus: 'Durum Değiştir', removeCar: 'Aracı Kaldır', supplierReportTitle: 'Ülke Bazlı Tedarikçi Hacim Raporu', supplierReportSub: 'Ülkelere göre gruplanmış tedarikçi firmalarınız', metaTitle: 'Meta-Search Entegrasyon Merkezi', metaSub: 'Skyscanner ve Kayak gibi platformların envanterinizi çekeceği açık API adresi.', feedAddress: 'Resmi JSON Feed Bağlantı Adresi', copy: 'Kopyala', footer: 'Tüm Hakları Saklıdır © 2026 FlexiDrive Global OS.' },
+      en: { quickMenu: 'Quick Menu', fleet: 'Fleet Operations', suppliers: 'Supplier Network', feed: 'Meta-Search Feed', supplierPortal: 'Supplier Portal', totalFleet: 'Total Fleet', activeAvailable: 'Active / Available', dailyRevenue: 'Daily Potential Revenue', available: 'AVAILABLE', rented: 'RENTED', netSale: 'Net / Sale:', published: 'Published:', changeStatus: 'Toggle Status', removeCar: 'Remove Car', supplierReportTitle: 'Country-Based Supplier Volume Report', supplierReportSub: 'Suppliers grouped by country', metaTitle: 'Meta-Search Integration Center', metaSub: 'Open API address for Skyscanner and Kayak.', feedAddress: 'Official JSON Feed Address', copy: 'Copy', footer: 'All Rights Reserved © 2026 FlexiDrive Global OS.' },
+      de: { quickMenu: 'Schnellmenü', fleet: 'Flottenbetrieb', suppliers: 'Lieferantennetzwerk', feed: 'Meta-Search Feed', supplierPortal: 'Lieferantenportal', totalFleet: 'Gesamte Flotte', activeAvailable: 'Aktiv / Verfügbar', dailyRevenue: 'Ttäglicher Umsatz', available: 'VERFÜGBAR', rented: 'VERMIETET', netSale: 'Netto / Verkauf:', published: 'Veröffentlicht:', changeStatus: 'Status Ändern', removeCar: 'Fahrzeug Entfernen', supplierReportTitle: 'Länderbasieter Lieferantenbericht', supplierReportSub: 'Lieferanten nach Ländern gruppiert', metaTitle: 'Meta-Search Integrationszentrum', metaSub: 'Offene API-Adresse für Skyscanner und Kayak.', feedAddress: 'Offizielle JSON Feed Adresse', copy: 'Kopieren', footer: 'Alle Rechte vorbehalten © 2026 FlexiDrive Global OS.' },
+      it: { quickMenu: 'Menu Rapido', fleet: 'Operazioni Flotta', suppliers: 'Rete Fornitori', feed: 'Meta-Search Feed', supplierPortal: 'Portale Fornitori', totalFleet: 'Flotta Totale', activeAvailable: 'Attivo / Disponibile', dailyRevenue: 'Potenziale Ricavo Giornaliero', available: 'DISPONIBILE', rented: 'AFFITTATO', netSale: 'Netto / Vendita:', published: 'Pubblicato:', changeStatus: 'Cambia Stato', removeCar: 'Rimuovi Auto', supplierReportTitle: 'Rapporto Fornitori per Paese', supplierReportSub: 'Fornitori raggruppati per paese', metaTitle: 'Centro Integrazione Meta-Search', metaSub: 'Indirizzo API aperto per Skyscanner e Kayak.', feedAddress: 'Indirizzo JSON Feed Ufficiale', copy: 'Copia', footer: 'Tutti i diritti riservati © 2026 FlexiDrive Global OS.' }
     };
 
     document.addEventListener('alpine:init', () => {
@@ -421,7 +436,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Çoklu Dil Desteğiyle)
+// 5. TEDARİKÇİ PORTALI (Özel Rota Logolu)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #242220;">
@@ -466,7 +481,9 @@ app.get('/tedarikci-paneli', (req, res) => {
     <header class="bg-[#1c1a18] border-b gold-border sticky top-0 z-40 shadow-xl">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div @click="activeTab = 'cars'" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüye Dön">
-          <div class="gold-btn p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md group-hover:scale-105 transition-transform"><i class="fa-solid fa-car-side"></i></div>
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-xl text-white shadow-lg group-hover:scale-105 transition-transform">
+            <i class="fa-solid fa-route"></i>
+          </div>
           <div class="flex flex-col">
             <div class="flex items-center space-x-2">
               <span class="text-2xl font-black tracking-tight text-white">FlexiDrive</span>
@@ -486,7 +503,6 @@ app.get('/tedarikci-paneli', (req, res) => {
             <span class="w-5 h-5 rounded-full bg-[#1c1a18] text-amber-400 flex items-center justify-center mr-2 text-xs font-black shadow-inner"><i class="fa-solid fa-plus"></i></span> <span x-text="t('addCar')">Yeni Araç Ekle</span>
           </button>
 
-          <!-- DİL SEÇİM DROPDOWN -->
           <div class="relative ml-2" x-data="{ langOpen: false }">
             <button @click="langOpen = !langOpen" class="bg-[#242220] border gold-border text-amber-400 px-3 py-2 rounded-xl font-black text-xs flex items-center shadow">
               <i class="fa-solid fa-globe mr-1.5"></i> <span x-text="currentLang.toUpperCase()"></span>
@@ -596,7 +612,7 @@ app.get('/tedarikci-paneli', (req, res) => {
               <div>
                 <h5 class="text-base font-black text-white" x-text="t('lockedTitle')">Sadakat Primi Modülü Şu An Kilitli</h5>
                 <p class="text-xs font-semibold text-stone-400 mt-1 max-w-lg mx-auto" x-text="t('lockedDesc')">
-                  VIP Sadakat Primi ve ek ciro desteklerinden yararlanabilmeniz için sistemimizde en az 3 ay kesintisiz aktif iş ortaklığı yürütmeniz gerekmektedir.
+                  VIP Sadakat Primi ve ek ciro desteklerinden yararlanabilmeniz için en az 3 ay kesintisiz aktif iş ortaklığı yürütmeniz gerekmektedir.
                 </p>
               </div>
             </div>
@@ -617,7 +633,6 @@ app.get('/tedarikci-paneli', (req, res) => {
           </div>
         </div>
 
-        <!-- YENİ ARAÇ EKLEME FORMU (Gelişmiş Ülke, Havalimanı ve Telefon Alanları) -->
         <div x-show="activeTab === 'add'" x-cloak x-transition class="bg-[#1c1a18] border gold-border rounded-3xl p-8 shadow-2xl relative overflow-hidden text-stone-200">
           <h3 class="text-xl font-black text-white mb-2"><i class="fa-solid fa-plus-circle text-amber-400 mr-2"></i> <span x-text="t('addNewCar')">Filoya Yeni Araç Ekle</span></h3>
           <p class="text-xs font-semibold text-stone-400 mb-6"><span x-text="t('companyMatch')">Firma adınız otomatik eşleştirilmektedir:</span> <strong class="text-white" x-text="companyName"></strong></p>
@@ -876,5 +891,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive çoklu dil destekli VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive özel logolu VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
