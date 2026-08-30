@@ -15,7 +15,7 @@ mongoose.connect(mongoURI)
   .then(() => console.log('MongoDB kurumsal veritabanı bağlantısı başarılı!'))
   .catch((err) => console.error('Veritabanı bağlantı hatası:', err));
 
-// 2. Veritabanı Modeli
+// 2. Veritabanı Modelleri
 const CarSchema = new mongoose.Schema({
   brand: { type: String, required: true },
   model: { type: String, required: true },
@@ -35,8 +35,17 @@ const CarSchema = new mongoose.Schema({
   available: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
-
 const Car = mongoose.model('Car', CarSchema);
+
+// Tedarikçi Hesapları Koleksiyonu
+const SupplierUserSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  companyName: { type: String, required: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+const SupplierUser = mongoose.model('SupplierUser', SupplierUserSchema);
 
 // 3. API Rotaları
 app.get('/api/cars', async (req, res) => {
@@ -48,7 +57,7 @@ app.get('/api/cars', async (req, res) => {
   }
 });
 
-// Güvenli Tedarikçi İzolasyon Endpoint'i
+// Tedarikçi Araçları Endpoint'i
 app.get('/api/supplier/cars', async (req, res) => {
   try {
     const compName = req.query.company;
@@ -59,6 +68,52 @@ app.get('/api/supplier/cars', async (req, res) => {
     res.json(supplierCars);
   } catch (err) {
     res.status(500).json({ error: 'Tedarikçi verileri alınamadı' });
+  }
+});
+
+// Tedarikçi Kayıt Endpoint'i (Hesap Oluştur)
+app.post('/api/supplier/register', async (req, res) => {
+  try {
+    const { fullName, email, companyName, password } = req.body;
+    if (!fullName || !email || !companyName || !password) {
+      return res.status(400).json({ error: 'Lütfen tüm alanları eksiksiz doldurun.' });
+    }
+
+    const existingUser = await SupplierUser.findOne({ email: email.trim().toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Bu e-posta adresiyle zaten bir hesap mevcut.' });
+    }
+
+    const newUser = new SupplierUser({
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      companyName: companyName.trim(),
+      password: password.trim()
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: 'Hesabınız başarıyla oluşturuldu! Şimdi giriş yapabilirsiniz.' });
+  } catch (err) {
+    res.status(400).json({ error: 'Kayıt sırasında bir hata oluştu', details: err.message });
+  }
+});
+
+// Tedarikçi Giriş Kontrol Endpoint'i
+app.post('/api/supplier/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'E-posta ve şifre gereklidir.' });
+    }
+
+    const user = await SupplierUser.findOne({ email: email.trim().toLowerCase() });
+    if (!user || user.password !== password.trim()) {
+      return res.status(400).json({ error: 'Hatalı e-posta veya şifre!' });
+    }
+
+    res.json({ success: true, companyName: user.companyName, fullName: user.fullName });
+  } catch (err) {
+    res.status(500).json({ error: 'Giriş yapılamadı' });
   }
 });
 
@@ -198,7 +253,7 @@ app.get('/', (req, res) => {
 </head>
 <body class="h-full flex flex-col justify-between" x-data="adminApp()">
 
-  <!-- ADMIN GİRİŞ EKRANI (ŞİFRE KORUMASI) -->
+  <!-- ADMIN GİRİŞ EKRANI -->
   <div x-show="!isAdminLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-[#f7f5f0] p-4">
     <div class="max-w-md w-full glass-card rounded-3xl p-8 shadow-2xl text-center border gold-border">
       <div class="w-16 h-16 gold-badge rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border"><i class="fa-solid fa-shield-halved"></i></div>
@@ -206,7 +261,7 @@ app.get('/', (req, res) => {
       <p class="text-xs font-semibold text-stone-600 mb-6">Yönetici paneline erişmek için admin şifrenizi girin.</p>
       
       <form @submit.prevent="loginAdmin()" class="space-y-4">
-        <input type="password" x-model="adminPasswordInput" required placeholder="Admin Şifresi (Örn: eren2026)" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm text-center font-bold focus:outline-none focus:border-stone-900 shadow-inner">
+        <input type="password" x-model="adminPasswordInput" required placeholder="Admin Şifresi (eren2026)" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm text-center font-bold focus:outline-none focus:border-stone-900 shadow-inner">
         <div x-show="adminLoginError" x-text="adminLoginError" class="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-200"></div>
         <button type="submit" class="w-full gold-btn font-extrabold py-3.5 rounded-xl shadow-lg transition-all text-sm">Güvenli Giriş Yap</button>
       </form>
@@ -412,7 +467,6 @@ app.get('/', (req, res) => {
         },
         async loginAdmin() {
           this.adminLoginError = '';
-          // Admin şifren burada sabitlenmiştir: 'eren2026'
           if (this.adminPasswordInput.trim() === 'eren2026') {
             this.isAdminLoggedIn = true;
             localStorage.setItem('flexi_admin_auth', 'true');
@@ -493,7 +547,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (İzole Edilmiş & Güvenli Saha Paneli)
+// 5. TEDARİKÇİ PORTALI (Kayıt Ol + Güvenli Giriş Seçenekli)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #f7f5f0;">
@@ -573,17 +627,63 @@ app.get('/tedarikci-paneli', (req, res) => {
 
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center">
 
+      <!-- GİRİŞ VEYA KAYIT OL EKRANI -->
       <div x-show="!isLoggedIn" class="max-w-md mx-auto glass-card rounded-3xl p-8 shadow-xl text-center">
-        <div class="w-16 h-16 gold-badge rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border"><i class="fa-solid fa-lock"></i></div>
-        <h2 class="text-2xl font-black text-stone-900 mb-2" x-text="t('loginTitle')">Tedarikçi Güvenli Giriş</h2>
-        <p class="text-xs font-semibold text-stone-600 mb-6" x-text="t('loginSub')">Firma adınızı ve şifrenizi girerek panelinize erişin.</p>
         
-        <form @submit.prevent="loginSupplier()" class="space-y-4">
-          <input type="text" x-model="inputCompanyName" required placeholder="Firma Adınız (Örn: budvarent)" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm text-center font-bold focus:outline-none focus:border-stone-900 shadow-inner">
-          <input type="password" x-model="inputPassword" required placeholder="Giriş Şifreniz" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm text-center font-bold focus:outline-none focus:border-stone-900 shadow-inner">
-          <div x-show="loginError" x-text="loginError" class="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-200"></div>
-          <button type="submit" class="w-full gold-btn font-extrabold py-3.5 rounded-xl shadow-lg transition-all text-sm" x-text="t('loginBtn')">Güvenli Giriş Yap</button>
-        </form>
+        <!-- Sekme Butonları -->
+        <div class="flex bg-stone-200/60 p-1.5 rounded-2xl mb-6 shadow-inner">
+          <button @click="authMode = 'login'" :class="authMode === 'login' ? 'bg-white text-stone-900 shadow font-black' : 'text-stone-600 font-bold'" class="w-1/2 py-2.5 rounded-xl text-xs transition-all">Giriş Yap</button>
+          <button @click="authMode = 'register'" :class="authMode === 'register' ? 'bg-stone-900 text-white shadow font-black' : 'text-stone-600 font-bold'" class="w-1/2 py-2.5 rounded-xl text-xs transition-all">Hesap Oluştur</button>
+        </div>
+
+        <!-- GİRİŞ FORMU -->
+        <div x-show="authMode === 'login'">
+          <div class="w-14 h-14 gold-badge rounded-2xl flex items-center justify-center text-xl mx-auto mb-4 border"><i class="fa-solid fa-lock"></i></div>
+          <h2 class="text-xl font-black text-stone-900 mb-1">Tedarikçi Girişi</h2>
+          <p class="text-xs font-semibold text-stone-600 mb-6">Kayıtlı e-posta adresinizle giriş yapın.</p>
+          
+          <form @submit.prevent="loginSupplier()" class="space-y-4 text-left">
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">E-Posta Adresi</label>
+              <input type="email" x-model="loginEmail" required placeholder="ornek@firma.com" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm font-bold shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Şifre</label>
+              <input type="password" x-model="loginPassword" required placeholder="••••••••" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-900 text-sm font-bold shadow-inner">
+            </div>
+            <div x-show="loginError" x-text="loginError" class="text-xs font-bold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200 text-center"></div>
+            <button type="submit" class="w-full gold-btn font-extrabold py-3.5 rounded-xl shadow-lg transition-all text-sm mt-2">Giriş Yap</button>
+          </form>
+        </div>
+
+        <!-- HESAP OLUŞTURMA FORMU -->
+        <div x-show="authMode === 'register'">
+          <div class="w-14 h-14 bg-emerald-500/10 text-emerald-700 rounded-2xl flex items-center justify-center text-xl mx-auto mb-4 border border-emerald-300"><i class="fa-solid fa-user-plus"></i></div>
+          <h2 class="text-xl font-black text-stone-900 mb-1">Yeni Tedarikçi Hesabı</h2>
+          <p class="text-xs font-semibold text-stone-600 mb-6">Bilgilerinizi girerek anında hesabınızı oluşturun.</p>
+          
+          <form @submit.prevent="registerSupplier()" class="space-y-3 text-left">
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Ad Soyad</label>
+              <input type="text" x-model="regForm.fullName" required placeholder="Eren Evren Barış" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 text-xs font-bold shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">E-Posta Adresi</label>
+              <input type="email" x-model="regForm.email" required placeholder="eren@coca-cola.com" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 text-xs font-bold shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Firma Adı (Rent a Car / Şirket)</label>
+              <input type="text" x-model="regForm.companyName" required placeholder="Budva Rent a Car" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 text-xs font-bold shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Şifre Belirleyin</label>
+              <input type="password" x-model="regForm.password" required placeholder="••••••••" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-stone-900 text-xs font-bold shadow-inner">
+            </div>
+            <div x-show="regMessage" x-text="regMessage" :class="isRegError ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'" class="p-2.5 rounded-lg border text-xs font-bold text-center"></div>
+            <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white font-black py-3 rounded-xl shadow transition-all text-xs mt-2">Hesabımı Oluştur</button>
+          </form>
+        </div>
+
       </div>
 
       <div x-show="isLoggedIn" x-cloak class="w-full space-y-6">
@@ -784,10 +884,10 @@ app.get('/tedarikci-paneli', (req, res) => {
 
   <script>
     const TRANSLATIONS = {
-      tr: { myCars: 'Araçlarım', wallet: 'Hesap Özeti', loyalty: 'Sadakat Primi', stats: 'İstatistikler', addCar: 'Yeni Araç Ekle', loginTitle: 'Tedarikçi Güvenli Giriş', loginSub: 'Firma adınızı ve şifrenizi girerek panelinize erişin.', loginBtn: 'Güvenli Giriş Yap', activePanel: 'Aktif VIP Tedarikçi Paneli', totalCars: 'Toplam Araç', availableCars: 'Müsait Araç', myCarsTitle: 'Sistemdeki Araçlarım', available: 'MÜSAİT', rented: 'KİRADA', publishedDate: 'Yayınlanma Tarihi:', dailyNet: 'Günlük Net Kazanç:', year: 'Yıl', changeStatus: 'Durum Değiştir', walletTitle: 'Hesap Özeti & Finansal Rapor', totalPotential: 'Toplam Aktif Araç Kazanç Potansiyeli', modelHeader: 'İş Modeli', modelDesc: 'Global B2B Dağıtım Sözleşmesi', loyaltyTitle: 'VIP Sadakat Primi & Seviye Durumu', loyaltyHeader: 'FlexiDrive İş Ortaklığı Kademesi', loyaltySub: 'Sistemdeki kıdeminize göre özel prim kazanma modülü.', lockedTitle: 'Sadakat Primi Modülü Şu An Kilitli', lockedDesc: 'VIP Sadakat Primi ve ek ciro desteklerinden yararlanabilmeniz için en az 3 ay kesintisiz aktif iş ortaklığı yürütmeniz gerekmektedir.', statsTitle: 'Kiralama Performans İstatistikleri', fleetShare: 'Toplam Filo Havuzundaki Payınız', opStatus: 'Operasyonel Durum', activeStatus: 'Sorunsuz & Aktif', addNewCar: 'Filoya Yeni Araç Ekle', companyMatch: 'Firma adınız otomatik eşleştirilmektedir:', countrySelect: 'Ülke Seçimi', airportSelect: 'Havalimanı / Teslim Noktası', panelPass: 'Paneme Giriş Şifreniz', phoneNum: 'İletişim Numarası (Telefon)', brand: 'Marka', model: 'Model', category: 'Sınıf', fuel: 'Yakıt', luggage: 'Bavul', dailyNetEarn: 'Günlük Net Kazanç (Max 400 €)', saveAndPublish: 'Aracı Sisteme Kaydet ve Listeme Ekle' },
-      en: { myCars: 'My Cars', wallet: 'Wallet Summary', loyalty: 'Loyalty Bonus', stats: 'Statistics', addCar: 'Add Car', loginTitle: 'Supplier Secure Login', loginSub: 'Enter your company name and password.', loginBtn: 'Secure Login', activePanel: 'Active VIP Supplier Panel', totalCars: 'Total Cars', availableCars: 'Available Cars', myCarsTitle: 'My Registered Cars', available: 'AVAILABLE', rented: 'RENTED', publishedDate: 'Published Date:', dailyNet: 'Daily Net Earning:', year: 'Year', changeStatus: 'Toggle Status', walletTitle: 'Wallet Summary & Financial Report', totalPotential: 'Total Active Earnings Potential', modelHeader: 'Business Model', modelDesc: 'Global B2B Distribution Agreement', loyaltyTitle: 'VIP Loyalty Bonus & Tier', loyaltyHeader: 'FlexiDrive Partnership Tier', loyaltySub: 'Special bonus module based on your operational tenure.', lockedTitle: 'Loyalty Bonus Module Currently Locked', lockedDesc: 'To benefit from VIP Loyalty bonuses, you must maintain at least 3 months of uninterrupted active partnership.', statsTitle: 'Rental Performance Statistics', fleetShare: 'Your Share in Total Fleet', opStatus: 'Operational Status', activeStatus: 'Smooth & Active', addNewCar: 'Add New Vehicle', companyMatch: 'Your company name is automatically matched:', countrySelect: 'Select Country', airportSelect: 'Airport / Pickup Point', panelPass: 'Panel Access Password', phoneNum: 'Phone Number', brand: 'Brand', model: 'Model', category: 'Category', fuel: 'Fuel', luggage: 'Luggage', dailyNetEarn: 'Daily Net Earning (Max 400 €)', saveAndPublish: 'Save Car to System' },
-      de: { myCars: 'Meine Autos', wallet: 'Kontostand', loyalty: 'Treuebonus', stats: 'Statistiken', addCar: 'Auto Hinzufügen', loginTitle: 'Sicherer Login', loginSub: 'Geben Sie Ihren Firmennamen und Ihr Passwort ein.', loginBtn: 'Sicher Einloggen', activePanel: 'Aktives VIP-Lieferantenpanel', totalCars: 'Gesamte Autos', availableCars: 'Verfügbare Autos', myCarsTitle: 'Meine Fahrzeuge', available: 'VERFÜGBAR', rented: 'VERMIETET', publishedDate: 'Veröffentlichungsdatum:', dailyNet: 'Täglicher Nettoverdienst:', year: 'Jahr', changeStatus: 'Status Ändern', walletTitle: 'Finanzbericht', totalPotential: 'Gesamtes Ertragspotenzial', modelHeader: 'Geschäftsmodell', modelDesc: 'Globaler B2B-Vertriebsvertrag', loyaltyTitle: 'VIP Treuebonus', loyaltyHeader: 'FlexiDrive Partnerschaftsstufe', loyaltySub: 'Spezielles Bonusmodul basierend auf Ihrer Betriebszugehörigkeit.', lockedTitle: 'Treuebonus-Modul gesperrt', lockedDesc: 'Um von VIP-Treueboni zu profitieren, müssen Sie mindestens 3 Monate lang aktiv sein.', statsTitle: 'Leistungsstatistik', fleetShare: 'Ihr Anteil an der Flotte', opStatus: 'Betriebsstatus', activeStatus: 'Reibungslos & Aktiv', addNewCar: 'Neues Fahrzeug Hinzufügen', companyMatch: 'Ihr Firmenname wird automatisch zugeordnet:', countrySelect: 'Land Auswählen', airportSelect: 'Flughafen / Abholpunkt', panelPass: 'Passwort', phoneNum: 'Telefonnummer', brand: 'Marke', model: 'Modell', category: 'Kategorie', fuel: 'Kraftstoff', luggage: 'Gepäck', dailyNetEarn: 'Ttäglicher Nettoverdienst (Max 400 €)', saveAndPublish: 'Fahrzeug Speichern' },
-      it: { myCars: 'Le Mie Auto', wallet: 'Riepilogo', loyalty: 'Bonus Fedeltà', stats: 'Statistiche', addCar: 'Aggiungi Auto', loginTitle: 'Accesso Sicuro Fornitore', loginSub: 'Inserisci nome azienda e password.', loginBtn: 'Accesso Sicuro', activePanel: 'Pannello Fornitore VIP Attivo', totalCars: 'Auto Totali', availableCars: 'Auto Disponibili', myCarsTitle: 'I Miei Veicoli', available: 'DISPONIBILE', rented: 'AFFITTATO', publishedDate: 'Data Pubblicazione:', dailyNet: 'Guadagno Netto Giornaliero:', year: 'Anno', changeStatus: 'Cambia Stato', walletTitle: 'Riepilogo Finanziario', totalPotential: 'Potenziale di Guadagno', modelHeader: 'Modello di Business', modelDesc: 'Accordo di Distribuzione B2B', loyaltyTitle: 'Bonus Fedeltà VIP', loyaltyHeader: 'Livello di Partnership FlexiDrive', loyaltySub: 'Modulo bonus basato sulla tua anzianità operativa.', lockedTitle: 'Modulo Bonus Fedeltà Bloccato', lockedDesc: 'Per beneficiare dei bonus di fedeltà VIP, devi mantenere almeno 3 mesi di partnership attiva.', statsTitle: 'Statistiche di Prestazione', fleetShare: 'La tua quota nella flotta', opStatus: 'Stato Operativo', activeStatus: 'Attivo e Regolare', addNewCar: 'Aggiungi Nuovo Veicolo', companyMatch: 'Il nome della tua azienda viene abbinato automaticamente:', countrySelect: 'Seleziona Paese', airportSelect: 'Aeroporto / Punto di Ritrovo', panelPass: 'Password Pannello', phoneNum: 'Numero di Telefono', brand: 'Marca', model: 'Modell', category: 'Categoria', fuel: 'Carburante', luggage: 'Bagaglio', dailyNetEarn: 'Guadagno Netto Giornaliero (Max 400 €)', saveAndPublish: 'Salva Veicolo' }
+      tr: { myCars: 'Araçlarım', wallet: 'Hesap Özeti', loyalty: 'Sadakat Primi', stats: 'İstatistikler', addCar: 'Yeni Araç Ekle', loginTitle: 'Tedarikçi Girişi', loginSub: 'Kayıtlı e-posta adresinizle giriş yapın.', loginBtn: 'Giriş Yap', activePanel: 'Aktif VIP Tedarikçi Paneli', totalCars: 'Toplam Araç', availableCars: 'Müsait Araç', myCarsTitle: 'Sistemdeki Araçlarım', available: 'MÜSAİT', rented: 'KİRADA', publishedDate: 'Yayınlanma Tarihi:', dailyNet: 'Günlük Net Kazanç:', year: 'Yıl', changeStatus: 'Durum Değiştir', walletTitle: 'Hesap Özeti & Finansal Rapor', totalPotential: 'Toplam Aktif Araç Kazanç Potansiyeli', modelHeader: 'İş Modeli', modelDesc: 'Global B2B Dağıtım Sözleşmesi', loyaltyTitle: 'VIP Sadakat Primi & Seviye Durumu', loyaltyHeader: 'FlexiDrive İş Ortaklığı Kademesi', loyaltySub: 'Sistemdeki kıdeminize göre özel prim kazanma modülü.', lockedTitle: 'Sadakat Primi Modülü Şu An Kilitli', lockedDesc: 'VIP Sadakat Primi ve ek ciro desteklerinden yararlanabilmeniz için en az 3 ay kesintisiz aktif iş ortaklığı yürütmeniz gerekmektedir.', statsTitle: 'Kiralama Performans İstatistikleri', fleetShare: 'Toplam Filo Havuzundaki Payınız', opStatus: 'Operasyonel Durum', activeStatus: 'Sorunsuz & Aktif', addNewCar: 'Filoya Yeni Araç Ekle', companyMatch: 'Firma adınız otomatik eşleştirilmektedir:', countrySelect: 'Ülke Seçimi', airportSelect: 'Havalimanı / Teslim Noktası', panelPass: 'Paneme Giriş Şifreniz', phoneNum: 'İletişim Numarası (Telefon)', brand: 'Marka', model: 'Model', category: 'Sınıf', fuel: 'Yakıt', luggage: 'Bavul', dailyNetEarn: 'Günlük Net Kazanç (Max 400 €)', saveAndPublish: 'Aracı Sisteme Kaydet ve Listeme Ekle' },
+      en: { myCars: 'My Cars', wallet: 'Wallet Summary', loyalty: 'Loyalty Bonus', stats: 'Statistics', addCar: 'Add Car', loginTitle: 'Supplier Login', loginSub: 'Login with your registered email.', loginBtn: 'Login', activePanel: 'Active VIP Supplier Panel', totalCars: 'Total Cars', availableCars: 'Available Cars', myCarsTitle: 'My Registered Cars', available: 'AVAILABLE', rented: 'RENTED', publishedDate: 'Published Date:', dailyNet: 'Daily Net Earning:', year: 'Year', changeStatus: 'Toggle Status', walletTitle: 'Wallet Summary & Financial Report', totalPotential: 'Total Active Earnings Potential', modelHeader: 'Business Model', modelDesc: 'Global B2B Distribution Agreement', loyaltyTitle: 'VIP Loyalty Bonus & Tier', loyaltyHeader: 'FlexiDrive Partnership Tier', loyaltySub: 'Special bonus module based on your operational tenure.', lockedTitle: 'Loyalty Bonus Module Currently Locked', lockedDesc: 'To benefit from VIP Loyalty bonuses, you must maintain at least 3 months of uninterrupted active partnership.', statsTitle: 'Rental Performance Statistics', fleetShare: 'Your Share in Total Fleet', opStatus: 'Operational Status', activeStatus: 'Smooth & Active', addNewCar: 'Add New Vehicle', companyMatch: 'Your company name is automatically matched:', countrySelect: 'Select Country', airportSelect: 'Airport / Pickup Point', panelPass: 'Panel Access Password', phoneNum: 'Phone Number', brand: 'Brand', model: 'Model', category: 'Category', fuel: 'Fuel', luggage: 'Luggage', dailyNetEarn: 'Daily Net Earning (Max 400 €)', saveAndPublish: 'Save Car to System' },
+      de: { myCars: 'Meine Autos', wallet: 'Kontostand', loyalty: 'Treuebonus', stats: 'Statistiken', addCar: 'Auto Hinzufügen', loginTitle: 'Lieferanten-Login', loginSub: 'Mit registrierter E-Mail anmelden.', loginBtn: 'Anmelden', activePanel: 'Aktives VIP-Lieferantenpanel', totalCars: 'Gesamte Autos', availableCars: 'Verfügbare Autos', myCarsTitle: 'Meine Fahrzeuge', available: 'VERFÜGBAR', rented: 'VERMIETET', publishedDate: 'Veröffentlichungsdatum:', dailyNet: 'Täglicher Nettoverdienst:', year: 'Jahr', changeStatus: 'Status Ändern', walletTitle: 'Finanzbericht', totalPotential: 'Gesamtes Ertragspotenzial', modelHeader: 'Geschäftsmodell', modelDesc: 'Globaler B2B-Vertriebsvertrag', loyaltyTitle: 'VIP Treuebonus', loyaltyHeader: 'FlexiDrive Partnerschaftsstufe', loyaltySub: 'Spezielles Bonusmodul basierend auf Ihrer Betriebszugehörigkeit.', lockedTitle: 'Treuebonus-Modul gesperrt', lockedDesc: 'Um von VIP-Treueboni zu profitieren, müssen Sie mindestens 3 Monate lang aktiv sein.', statsTitle: 'Leistungsstatistik', fleetShare: 'Ihr Anteil an der Flotte', opStatus: 'Betriebsstatus', activeStatus: 'Reibungslos & Aktiv', addNewCar: 'Neues Fahrzeug Hinzufügen', companyMatch: 'Ihr Firmenname wird automatisch zugeordnet:', countrySelect: 'Land Auswählen', airportSelect: 'Flughafen / Abholpunkt', panelPass: 'Passwort', phoneNum: 'Telefonnummer', brand: 'Marke', model: 'Modell', category: 'Kategorie', fuel: 'Kraftstoff', luggage: 'Gepäck', dailyNetEarn: 'Ttäglicher Nettoverdienst (Max 400 €)', saveAndPublish: 'Fahrzeug Speichern' },
+      it: { myCars: 'Le Mie Auto', wallet: 'Riepilogo', loyalty: 'Bonus Fedeltà', stats: 'Statistiche', addCar: 'Aggiungi Auto', loginTitle: 'Accesso Fornitore', loginSub: 'Accedi con la tua email registrata.', loginBtn: 'Accedi', activePanel: 'Pannello Fornitore VIP Attivo', totalCars: 'Auto Totali', availableCars: 'Auto Disponibili', myCarsTitle: 'I Miei Veicoli', available: 'DISPONIBILE', rented: 'AFFITTATO', publishedDate: 'Data Pubblicazione:', dailyNet: 'Guadagno Netto Giornaliero:', year: 'Anno', changeStatus: 'Cambia Stato', walletTitle: 'Riepilogo Finanziario', totalPotential: 'Potenziale di Guadagno', modelHeader: 'Modello di Business', modelDesc: 'Accordo di Distribuzione B2B', loyaltyTitle: 'Bonus Fedeltà VIP', loyaltyHeader: 'Livello di Partnership FlexiDrive', loyaltySub: 'Modulo bonus basato sulla tua anzianità operativa.', lockedTitle: 'Modulo Bonus Fedeltà Bloccato', lockedDesc: 'Per beneficiare dei bonus di fedeltà VIP, devi mantenere almeno 3 mesi di partnership attiva.', statsTitle: 'Statistiche di Prestazione', fleetShare: 'La tua quota nella flotta', opStatus: 'Stato Operativo', activeStatus: 'Attivo e Regolare', addNewCar: 'Aggiungi Nuovo Veicolo', companyMatch: 'Il nome della tua azienda viene abbinato automaticamente:', countrySelect: 'Seleziona Paese', airportSelect: 'Aeroporto / Punto di Ritrovo', panelPass: 'Password Pannello', phoneNum: 'Numero di Telefono', brand: 'Marca', model: 'Modell', category: 'Categoria', fuel: 'Carburante', luggage: 'Bagaglio', dailyNetEarn: 'Guadagno Netto Giornaliero (Max 400 €)', saveAndPublish: 'Salva Veicolo' }
     };
 
     const GLOBAL_COUNTRIES = [
@@ -831,9 +931,13 @@ app.get('/tedarikci-paneli', (req, res) => {
     document.addEventListener('alpine:init', () => {
       Alpine.data('supplierPortal', () => ({
         isLoggedIn: false,
-        inputCompanyName: '',
-        inputPassword: '',
+        authMode: 'login', // 'login' veya 'register'
+        loginEmail: '',
+        loginPassword: '',
         loginError: '',
+        regForm: { fullName: '', email: '', companyName: '', password: '' },
+        regMessage: '',
+        isRegError: false,
         companyName: '',
         activeTab: 'cars',
         cars: [],
@@ -869,41 +973,56 @@ app.get('/tedarikci-paneli', (req, res) => {
         },
         async loginSupplier() {
           this.loginError = '';
-          if (!this.inputCompanyName.trim() || !this.inputPassword.trim()) {
-            this.loginError = 'Lütfen firma adı ve şifrenizi girin.';
-            return;
-          }
-          const compName = this.inputCompanyName.trim();
-          const enteredPass = this.inputPassword.trim();
-          
           try {
-            const res = await fetch('/api/supplier/cars?company=' + encodeURIComponent(compName));
-            const supplierCars = await res.json();
-            
-            if (supplierCars.length === 0) {
-              this.loginError = 'Bu isimde kayıtlı firma bulunamadı veya henüz aracınız yok.';
-              return;
+            const res = await fetch('/api/supplier/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: this.loginEmail, password: this.loginPassword })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              this.companyName = data.companyName;
+              localStorage.setItem('flexi_supplier_company', this.companyName);
+              this.isLoggedIn = true;
+              await this.fetchSupplierCars();
+            } else {
+              this.loginError = data.error || 'Giriş başarısız.';
             }
-
-            const validPass = supplierCars[0].supplierPassword || 'flexi2026';
-            if (enteredPass !== validPass) {
-              this.loginError = 'Hatalı şifre!';
-              return;
-            }
-
-            this.companyName = supplierCars[0].supplierName;
-            localStorage.setItem('flexi_supplier_company', this.companyName);
-            this.isLoggedIn = true;
-            this.cars = supplierCars;
           } catch (err) {
             this.loginError = 'Bağlantı hatası!';
+          }
+        },
+        async registerSupplier() {
+          this.regMessage = '';
+          try {
+            const res = await fetch('/api/supplier/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.regForm)
+            });
+            const data = await res.json();
+            if (res.ok) {
+              this.isRegError = false;
+              this.regMessage = data.message;
+              setTimeout(() => {
+                this.authMode = 'login';
+                this.loginEmail = this.regForm.email;
+                this.regMessage = '';
+              }, 2000);
+            } else {
+              this.isRegError = true;
+              this.regMessage = data.error || 'Kayıt başarısız.';
+            }
+          } catch (err) {
+            this.isRegError = true;
+            this.regMessage = 'Bağlantı hatası!';
           }
         },
         logout() {
           localStorage.removeItem('flexi_supplier_company');
           this.isLoggedIn = false; 
-          this.inputCompanyName = '';
-          this.inputPassword = '';
+          this.loginEmail = '';
+          this.loginPassword = '';
           this.cars = [];
         },
         get myCars() {
@@ -924,7 +1043,7 @@ app.get('/tedarikci-paneli', (req, res) => {
             if (priceVal > 400) { this.isError = true; this.message = 'Günlük net kazanç 400 € üzerinde olamaz!'; return; }
 
             const fullContact = this.form.dialCode + ' ' + this.form.phoneOnly;
-            const payload = { ...this.form, supplierName: this.companyName, supplierContact: fullContact };
+            const payload = { ...this.form, supplierName: this.companyName, supplierContact: fullContact, supplierPassword: 'flexi2026' };
 
             const res = await fetch('/api/cars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {
@@ -949,5 +1068,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive admin şifre korumalı VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive kayıt ol özellikli VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
