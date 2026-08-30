@@ -147,7 +147,7 @@ app.patch('/api/cars/:id/release', async (req, res) => {
   }
 });
 
-// 4. KURUMSAL ADMIN PANELİ (Derin Koyu VIP Tema & Şeffaf Footer)
+// 4. KURUMSAL ADMIN PANELİ (Koyu VIP Tema)
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #161514;">
@@ -203,8 +203,6 @@ app.get('/', (req, res) => {
     </header>
 
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-      <!-- SEKME 1: FİLO -->
       <div x-show="activeTab === 'admin'" x-transition>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div class="bg-zinc-900 border gold-border p-6 rounded-3xl shadow-lg flex justify-between items-center"><div><p class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Toplam Filo</p><h3 class="text-3xl font-black mt-1 text-white" x-text="cars.length">0</h3></div><div class="text-amber-500 text-3xl"><i class="fa-solid fa-car"></i></div></div>
@@ -250,7 +248,6 @@ app.get('/', (req, res) => {
         </div>
       </div>
 
-      <!-- SEKME 2: TEDARİKÇİ AĞI -->
       <div x-show="activeTab === 'partners'" x-cloak x-transition>
         <div class="flex items-center justify-between mb-6">
           <div>
@@ -292,7 +289,6 @@ app.get('/', (req, res) => {
         </div>
       </div>
 
-      <!-- SEKME 3: META-SEARCH FEED -->
       <div x-show="activeTab === 'integrations'" x-cloak x-transition>
         <div class="bg-zinc-900 border gold-border rounded-3xl p-8 shadow-xl">
           <div class="flex items-center space-x-3 mb-6 border-b border-zinc-800 pb-4">
@@ -302,23 +298,18 @@ app.get('/', (req, res) => {
               <p class="text-xs font-semibold text-zinc-400">Skyscanner ve Kayak gibi platformların envanterinizi çekeceği açık API adresi.</p>
             </div>
           </div>
-
-          <div class="space-y-4">
-            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-2">
-              <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider block">Resmi JSON Feed Bağlantı Adresi</span>
-              <div class="flex space-x-2">
-                <input type="text" readonly :value="windowOrigin + '/api/feed/global-inventory'" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-amber-400 font-mono font-bold focus:outline-none">
-                <button @click="navigator.clipboard.writeText(windowOrigin + '/api/feed/global-inventory'); alert('URL kopyalandı!')" class="gold-btn font-extrabold px-5 py-3 rounded-xl text-xs whitespace-nowrap shadow">Kopyala</button>
-              </div>
+          <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-2">
+            <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider block">Resmi JSON Feed Bağlantı Adresi</span>
+            <div class="flex space-x-2">
+              <input type="text" readonly :value="windowOrigin + '/api/feed/global-inventory'" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-amber-400 font-mono font-bold focus:outline-none">
+              <button @click="navigator.clipboard.writeText(windowOrigin + '/api/feed/global-inventory'); alert('URL kopyalandı!')" class="gold-btn font-extrabold px-5 py-3 rounded-xl text-xs whitespace-nowrap shadow">Kopyala</button>
             </div>
           </div>
         </div>
       </div>
-
     </main>
   </div>
 
-  <!-- Şeffaf Kurumsal Footer -->
   <footer class="w-full py-6 text-center text-xs text-zinc-500 border-t border-zinc-900 bg-zinc-950/40 backdrop-blur-sm">
     Tüm Hakları Saklıdır © 2026 FlexiDrive Global OS. Kurumsal B2B Araç Kiralama Ekosistemi.
   </footer>
@@ -387,7 +378,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 5. TEDARİKÇİ PORTALI (Koyu VIP Tema & Şeffaf Footer)
+// 5. TEDARİKÇİ PORTALI (Optimize Edilmiş Psikolojik UI ve "users" + Belirgin Artı Butonlu Sürüm)
 app.get('/tedarikci-paneli', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="tr" class="h-full" style="background-color: #161514;">
@@ -426,17 +417,30 @@ app.get('/tedarikci-paneli', (req, res) => {
   <div>
     <header class="bg-zinc-900 border-b gold-border sticky top-0 z-40 shadow-xl">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <!-- SOL LOGO & USERS İBARESİ -->
         <div @click="activeTab = 'cars'" class="flex items-center space-x-3 cursor-pointer group" title="Ana Menüye Dön">
           <div class="gold-btn p-2.5 rounded-xl flex items-center justify-center font-black text-lg shadow-md group-hover:scale-105 transition-transform"><i class="fa-solid fa-car-side"></i></div>
-          <span class="text-2xl font-black tracking-tighter text-white">FlexiDrive <span class="text-[10px] font-extrabold gold-badge px-2.5 py-0.5 rounded-full ml-1 uppercase">Tedarikçi</span></span>
+          <div class="flex flex-col">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-black tracking-tight text-white">FlexiDrive</span>
+              <span class="text-[9px] font-extrabold gold-badge px-2 py-0.5 rounded-full uppercase tracking-widest">Tedarikçi</span>
+            </div>
+            <span class="text-[10px] text-zinc-400 font-semibold tracking-wide flex items-center mt-0.5"><i class="fa-solid fa-users mr-1 text-amber-400 text-[9px]"></i> users portal</span>
+          </div>
         </div>
         
+        <!-- ÜST MENÜ & BELİRGİN ARTI BUTONU -->
         <div class="flex items-center space-x-2" x-show="isLoggedIn">
           <button @click="activeTab = 'cars'" :class="activeTab === 'cars' ? 'gold-btn shadow-md' : 'text-zinc-400 hover:bg-zinc-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-car mr-1.5"></i> Araçlarım</button>
           <button @click="activeTab = 'wallet'" :class="activeTab === 'wallet' ? 'gold-btn shadow-md' : 'text-zinc-400 hover:bg-zinc-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-wallet mr-1.5"></i> Hesap Özeti</button>
           <button @click="activeTab = 'loyalty'" :class="activeTab === 'loyalty' ? 'gold-btn shadow-md' : 'text-zinc-400 hover:bg-zinc-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-award mr-1.5"></i> Sadakat Primi</button>
           <button @click="activeTab = 'stats'" :class="activeTab === 'stats' ? 'gold-btn shadow-md' : 'text-zinc-400 hover:bg-zinc-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center"><i class="fa-solid fa-chart-line mr-1.5"></i> İstatistikler</button>
-          <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'gold-btn shadow-md' : 'text-zinc-400 hover:bg-zinc-800'" class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center border gold-border"><i class="fa-solid fa-plus-circle mr-1.5"></i> Yeni Araç Ekle</button>
+          
+          <!-- PSİKOLOJİK OLARAK ÖNE ÇIKARILMIŞ YENİ ARAÇ EKLE (ARTI) BUTONU -->
+          <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'bg-amber-500 text-zinc-950 shadow-lg ring-2 ring-amber-400' : 'gold-btn shadow-lg shadow-amber-600/20 hover:scale-105'" class="px-4 py-2.5 rounded-xl font-black text-xs transition-all flex items-center border border-amber-400/40">
+            <span class="w-5 h-5 rounded-full bg-zinc-950 text-amber-400 flex items-center justify-center mr-2 text-xs font-black shadow-inner"><i class="fa-solid fa-plus"></i></span> Yeni Araç Ekle
+          </button>
+
           <button @click="logout()" class="text-rose-400 hover:bg-rose-500/10 p-2 rounded-xl text-xs transition-all ml-2 border border-rose-500/30" title="Çıkış Yap"><i class="fa-solid fa-right-from-bracket text-base"></i></button>
         </div>
       </div>
@@ -474,7 +478,7 @@ app.get('/tedarikci-paneli', (req, res) => {
         <div x-show="activeTab === 'cars'" x-transition>
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-extrabold text-white"><i class="fa-solid fa-car text-amber-400 mr-2"></i> Sistemdeki Araçlarım</h3>
-            <button @click="activeTab = 'add'" class="gold-btn font-bold px-4 py-2 rounded-xl text-xs transition-all shadow"><i class="fa-solid fa-plus mr-1"></i> Yeni Araç Ekle</button>
+            <button @click="activeTab = 'add'" class="gold-btn font-bold px-4 py-2 rounded-xl text-xs transition-all shadow flex items-center"><span class="w-4 h-4 rounded-full bg-zinc-950 text-amber-400 flex items-center justify-center mr-1.5 text-[10px]"><i class="fa-solid fa-plus"></i></span> Yeni Araç Ekle</button>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -519,10 +523,8 @@ app.get('/tedarikci-paneli', (req, res) => {
           </div>
         </div>
 
-        <!-- SADAKAT PRİMİ SEVİYE & KİLİT EKRANI -->
         <div x-show="activeTab === 'loyalty'" x-cloak x-transition>
           <h3 class="text-lg font-extrabold text-white mb-6"><i class="fa-solid fa-award text-amber-400 mr-2"></i> VIP Sadakat Primi & Seviye Durumu</h3>
-          
           <div class="bg-zinc-900 border gold-border rounded-3xl p-8 shadow-2xl relative overflow-hidden text-zinc-200">
             <div class="flex items-center space-x-4 mb-6 pb-4 border-b border-zinc-800">
               <div class="w-16 h-16 rounded-2xl gold-btn flex items-center justify-center text-3xl shadow"><i class="fa-solid fa-shield-halved"></i></div>
@@ -531,7 +533,6 @@ app.get('/tedarikci-paneli', (req, res) => {
                 <p class="text-xs font-semibold text-zinc-400">Sistemdeki kıdeminize ve operasyonel sadakatinize göre özel prim kazanma modülü.</p>
               </div>
             </div>
-
             <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 text-center space-y-4">
               <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-xl mx-auto border border-amber-500/30 shadow-inner">
                 <i class="fa-solid fa-lock"></i>
@@ -654,7 +655,6 @@ app.get('/tedarikci-paneli', (req, res) => {
     </main>
   </div>
 
-  <!-- Şeffaf Kurumsal Footer -->
   <footer class="w-full py-6 text-center text-xs text-zinc-500 border-t border-zinc-900 bg-zinc-950/40 backdrop-blur-sm">
     Tüm Hakları Saklıdır © 2026 FlexiDrive Global OS. Kurumsal B2B Araç Kiralama Ekosistemi.
   </footer>
@@ -762,5 +762,5 @@ app.get('/tedarikci-paneli', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FlexiDrive koyu VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
+  console.log(`FlexiDrive psikolojik UX optimize edilmiş VIP sunucusu http://localhost:${PORT} adresinde aktif!`);
 });
